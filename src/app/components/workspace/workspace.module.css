@@ -1,0 +1,982 @@
+.taskCheck {
+    width: 16px;
+    height: 16px;
+    margin: 4px 0 0;
+    accent-color: #18775c;
+    cursor: pointer;
+}
+
+.modalBackdrop {
+    position: fixed;
+    z-index: 20;
+    inset: 0;
+    overflow: auto;
+    display: grid;
+    place-items: center;
+    padding: 22px;
+    background: rgba(10, 20, 15, .62);
+}
+
+.modalBackdrop :global(.ui.modal) {
+    position: relative;
+    display: block;
+    width: min(100%, 620px);
+    max-height: calc(100vh - 44px);
+    overflow: auto;
+    margin: 0;
+    border-radius: 6px;
+    box-shadow: var(--shadow);
+}
+
+.modalBackdrop :global(.ui.modal.tiny) {
+    width: min(100%, 420px);
+}
+
+.modalBackdrop :global(.ui.modal > .ui.button) {
+    position: absolute;
+    z-index: 1;
+    top: 9px;
+    right: 9px;
+    border: 0;
+    box-shadow: none !important;
+}
+
+.modalBackdrop :global(.ui.negative.message) {
+    background: color-mix(in srgb, #c83333 10%, var(--surface));
+    color: var(--ink);
+}
+
+.modalBackdrop :global(.ui.modal .header) {
+    padding-right: 50px;
+}
+
+.appShell :global(.ui.negative.message) {
+    background: color-mix(in srgb, #c83333 10%, var(--surface));
+    color: var(--ink);
+}
+
+.loading {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    color: var(--muted);
+}
+
+.loginPage {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: minmax(320px, 1.05fr) minmax(400px, .95fr);
+    background: var(--surface);
+}
+
+.loginBrand {
+    min-height: 100vh;
+    padding: clamp(36px, 7vw, 104px);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    color: #f0f5ef;
+    background: #164f41;
+    position: relative;
+    overflow: hidden;
+}
+
+.loginBrand::after {
+    content: "";
+    position: absolute;
+    width: 420px;
+    height: 420px;
+    border: 1px solid rgba(255, 255, 255, .12);
+    border-radius: 50%;
+    right: -190px;
+    bottom: -130px;
+    box-shadow: 0 0 0 44px rgba(255, 255, 255, .035), 0 0 0 90px rgba(255, 255, 255, .025);
+}
+
+.brandMark {
+    width: 42px;
+    height: 42px;
+    border-radius: 13px;
+    display: grid;
+    place-items: center;
+    background: rgba(225, 246, 232, .14);
+    color: #d0f0dc;
+    font-size: 19px;
+}
+
+.loginBrand .brandMark {
+    margin-bottom: 48px;
+}
+
+.kicker {
+    font-size: 10px;
+    letter-spacing: 1.6px;
+    color: var(--muted);
+    font-weight: 700;
+}
+
+.loginBrand .kicker {
+    color: #a9d0bf;
+}
+
+.loginBrand h1 {
+    margin: 24px 0 18px;
+    font-size: clamp(36px, 4vw, 57px);
+    line-height: 1.08;
+    letter-spacing: 0;
+    font-weight: 600;
+}
+
+.loginBrand p {
+    max-width: 390px;
+    color: #c2d7cc;
+    font-size: 16px;
+    line-height: 1.7;
+}
+
+.loginFootnote {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 90px;
+    color: #c2d7cc;
+    font-size: 12px;
+}
+
+.loginFootnote span {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #9fdbb4;
+}
+
+.loginPanel {
+    display: grid;
+    place-items: center;
+    padding: 48px 24px;
+    background: var(--surface);
+}
+
+.loginFormWrap {
+    width: min(100%, 370px);
+    animation: rise-in .5s ease both;
+}
+
+.loginFormWrap h2 {
+    margin: 14px 0 8px;
+    font-size: 29px;
+    font-weight: 600;
+    letter-spacing: 0;
+}
+
+.subtle {
+    color: var(--muted);
+    font-size: 14px;
+    margin: 0 0 32px;
+}
+
+.loginForm :global(.field) {
+    margin-bottom: 20px !important;
+}
+
+.loginForm :global(.field label) {
+    font-size: 12px !important;
+    margin-bottom: 8px !important;
+}
+
+.loginForm :global(.ui.input input) {
+    padding: 14px !important;
+    border-radius: 6px !important;
+}
+
+.loginForm :global(.ui.primary.button) {
+    background: #18775c;
+    margin-top: 8px;
+    height: 48px;
+}
+
+.secureNote {
+    display: block;
+    margin-top: 26px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.secureNote :global(.icon) {
+    margin-right: 6px;
+}
+
+.appShell {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr);
+    background: var(--canvas);
+}
+
+.sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    padding: 25px 17px 14px;
+    background: var(--surface);
+    border-right: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 0 7px;
+    margin: 0 0 40px;
+    color: var(--ink);
+    font-size: 21px;
+    font-weight: 700;
+}
+
+.brand .brandMark {
+    flex: 0 0 39px;
+    width: 39px;
+    height: 39px;
+    color: #18775c;
+    background: var(--accent-soft);
+}
+
+.brand small {
+    display: block;
+    margin-top: 3px;
+    font-size: 8px;
+    letter-spacing: 1.2px;
+    color: var(--muted);
+    font-weight: 700;
+}
+
+.navCaption {
+    color: var(--muted);
+    font-size: 9px;
+    letter-spacing: 1.3px;
+    font-weight: 700;
+}
+
+.sidebar>.navCaption {
+    padding: 0 10px 10px;
+}
+
+.navItem {
+    width: 100%;
+    min-height: 39px;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 5px;
+    text-align: left;
+    background: transparent;
+    color: var(--muted);
+    font-size: 12px;
+    transition: background .15s ease, color .15s ease;
+}
+
+.navItem :global(.icon) {
+    width: 15px;
+    margin: 0;
+    font-size: 13px;
+}
+
+.navItem:hover,
+.navActive {
+    color: var(--accent) !important;
+    background: var(--accent-soft) !important;
+}
+
+.navCount {
+    margin-left: auto;
+    color: var(--muted);
+    font-size: 10px;
+}
+
+.folderHeading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 31px 5px 9px 10px;
+}
+
+.folderHeading :global(.ui.button) {
+    color: var(--muted) !important;
+    padding: 7px !important;
+}
+
+.folderHeading :global(.icon) {
+    margin: 0 !important;
+}
+
+.folderName {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sidebarBottom {
+    margin-top: auto;
+}
+
+.profile {
+    border-top: 1px solid var(--line);
+    padding: 14px 2px 0;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.avatar {
+    width: 31px;
+    height: 31px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: #e0eee6;
+    color: #23624a;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.profileName {
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.profileName small {
+    display: block;
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 400;
+}
+
+.profile :global(.ui.button) {
+    color: var(--muted) !important;
+}
+
+.profile :global(.icon) {
+    margin: 0 !important;
+}
+
+.mainPanel {
+    min-width: 0;
+}
+
+.topbar {
+    height: 68px;
+    padding: 0 clamp(22px, 4vw, 62px);
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface);
+}
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.breadcrumb :global(.icon) {
+    margin: 0;
+    font-size: 9px;
+}
+
+.topActions {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.topActions :global(.ui.primary.button) {
+    background: #18775c;
+    font-size: 11px;
+    padding: 11px 15px;
+}
+
+.topActions :global(.ui.basic.button) {
+    border: 0;
+    box-shadow: none !important;
+}
+
+.content {
+    width: min(100%, 1150px);
+    margin: 0 auto;
+    padding: 45px clamp(22px, 4vw, 62px) 28px;
+}
+
+.welcomeLine {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.welcomeLine h1 {
+    margin: 12px 0 7px;
+    font-size: 32px;
+    font-weight: 600;
+    letter-spacing: 0;
+}
+
+.welcomeLine p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.dateStamp {
+    padding-bottom: 3px;
+    text-align: right;
+}
+
+.dateStamp span,
+.dateStamp strong {
+    display: block;
+}
+
+.dateStamp span {
+    color: var(--muted);
+    font-size: 9px;
+    letter-spacing: 1.4px;
+    font-weight: 700;
+}
+
+.dateStamp strong {
+    margin-top: 5px;
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.statsRow {
+    margin: 29px 0 40px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    background: var(--surface);
+}
+
+.stat {
+    position: relative;
+    min-height: 94px;
+    padding: 19px 21px;
+    border-right: 1px solid var(--line);
+}
+
+.stat:last-child {
+    border-right: 0;
+}
+
+.stat span {
+    display: block;
+    color: var(--muted);
+    font-size: 9px;
+    letter-spacing: 1px;
+    font-weight: 700;
+}
+
+.stat strong {
+    display: block;
+    margin-top: 10px;
+    color: var(--ink);
+    font-size: 23px;
+    font-weight: 600;
+}
+
+.stat> :global(.icon) {
+    position: absolute;
+    right: 20px;
+    top: 23px;
+    color: var(--accent);
+    opacity: .7;
+}
+
+.taskToolbar {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 15px;
+}
+
+.taskToolbar h2 {
+    margin: 0 0 5px;
+    color: var(--ink);
+    font-size: 17px;
+    font-weight: 600;
+}
+
+.taskToolbar>div:first-child>span {
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.taskControls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.taskControls :global(.ui.input input) {
+    width: 190px;
+    padding: 10px 11px !important;
+    font-size: 11px;
+    border-radius: 5px !important;
+}
+
+.filterTabs {
+    display: flex;
+    gap: 3px;
+    padding: 3px;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+}
+
+.filterTabs button {
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    padding: 7px 9px;
+    border-radius: 3px;
+    font-size: 10px;
+}
+
+.filterTabs button:hover,
+.filterTabs .tabActive {
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.taskList {
+    min-height: 160px;
+    border-top: 1px solid var(--line);
+}
+
+.taskRow {
+    min-height: 92px;
+    display: grid;
+    grid-template-columns: 23px minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 13px;
+    padding: 15px 9px;
+    border-bottom: 1px solid var(--line);
+    animation: rise-in .28s ease both;
+}
+
+.taskRow :global(.ui.checkbox) {
+    align-self: start;
+    padding-top: 4px;
+}
+
+.taskRow :global(.ui.checkbox label:before) {
+    border-color: var(--line) !important;
+    background: var(--surface) !important;
+}
+
+.taskRow :global(.ui.checkbox input:checked ~ label:before) {
+    background: #18775c !important;
+    border-color: #18775c !important;
+}
+
+.taskText {
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    color: var(--ink);
+}
+
+.taskTitle {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.taskNote {
+    display: block;
+    max-width: 720px;
+    margin-top: 5px;
+    overflow: hidden;
+    color: var(--muted);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 11px;
+}
+
+.taskMeta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 9px;
+    color: var(--muted);
+    font-size: 10px;
+}
+
+.taskMeta :global(.ui.label) {
+    margin: 0;
+    padding: 4px 7px;
+    color: var(--muted);
+    font-size: 9px;
+    font-weight: 500;
+}
+
+.taskMeta :global(.icon) {
+    margin-right: 4px;
+}
+
+.priority {
+    color: var(--warning);
+}
+
+.rowActions {
+    display: flex;
+    gap: 0;
+    opacity: .72;
+}
+
+.rowActions :global(.ui.button) {
+    padding: 8px !important;
+    color: var(--muted) !important;
+}
+
+.rowActions :global(.ui.button:hover) {
+    color: var(--accent) !important;
+}
+
+.taskDone .taskTitle {
+    color: var(--muted);
+    text-decoration: line-through;
+}
+
+.taskDone .taskNote {
+    opacity: .7;
+}
+
+.emptyState {
+    min-height: 245px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    color: var(--muted);
+    text-align: center;
+}
+
+.emptyState strong {
+    color: var(--ink);
+    font-size: 13px;
+}
+
+.emptyState>span:not(.emptyIcon) {
+    font-size: 11px;
+}
+
+.emptyIcon {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    margin-bottom: 3px;
+    border-radius: 50%;
+    color: var(--accent);
+    background: var(--accent-soft);
+}
+
+.emptyState :global(.ui.button) {
+    margin-top: 6px;
+    font-size: 11px;
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 17px;
+    padding: 16px 0;
+    color: var(--muted);
+    font-size: 10px;
+}
+
+.pagination :global(.ui.button) {
+    font-size: 10px;
+    padding: 9px 11px;
+}
+
+.footerNote {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 42px;
+    color: var(--muted);
+    font-size: 10px;
+}
+
+.footerNote :global(.icon) {
+    margin: 0;
+}
+
+.formColumns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.formColumns select {
+    width: 100%;
+    min-height: 39px;
+    padding: 0 10px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    color: var(--ink);
+}
+
+.formColumns :global(.field) {
+    min-width: 0;
+}
+
+@keyframes rise-in {
+    from {
+        opacity: 0;
+        transform: translateY(7px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 850px) {
+    .appShell {
+        grid-template-columns: 205px minmax(0, 1fr);
+    }
+
+    .content {
+        padding-top: 34px;
+    }
+
+    .taskToolbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .taskControls {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
+
+@media (max-width: 620px) {
+    .loginPage {
+        grid-template-columns: 1fr;
+    }
+
+    .loginBrand {
+        min-height: 240px;
+        padding: 28px 25px 24px;
+    }
+
+    .loginBrand .brandMark {
+        margin: 0 0 22px;
+        width: 35px;
+        height: 35px;
+    }
+
+    .loginBrand h1 {
+        margin: 12px 0 7px;
+        font-size: 32px;
+    }
+
+    .loginBrand p {
+        margin: 4px 0;
+        font-size: 13px;
+    }
+
+    .loginFootnote {
+        display: none;
+    }
+
+    .loginPanel {
+        padding: 38px 25px 52px;
+    }
+
+    .appShell {
+        display: block;
+        padding-bottom: 56px;
+    }
+
+    .sidebar {
+        position: fixed;
+        z-index: 5;
+        inset: auto 0 0;
+        width: 100%;
+        height: 56px;
+        padding: 4px 8px;
+        border-right: 0;
+        border-top: 1px solid var(--line);
+    }
+
+    .brand,
+    .sidebar>.navCaption,
+    .folderHeading,
+    .sidebar>.navItem:nth-of-type(n+5),
+    .sidebarBottom {
+        display: none;
+    }
+
+    .sidebar>.navItem {
+        width: 25%;
+        min-height: 45px;
+        flex-direction: column;
+        justify-content: center;
+        gap: 3px;
+        padding: 4px 1px;
+        border-radius: 4px;
+        font-size: 8px;
+        white-space: nowrap;
+    }
+
+    .sidebar>.navItem :global(.icon) {
+        font-size: 14px;
+    }
+
+    .sidebar>.navItem .navCount {
+        display: none;
+    }
+
+    .topbar {
+        height: 58px;
+        padding: 0 15px;
+    }
+
+    .breadcrumb {
+        font-size: 10px;
+    }
+
+    .topActions {
+        gap: 4px;
+    }
+
+    .topActions :global(.ui.primary.button) {
+        padding: 10px;
+        font-size: 10px;
+    }
+
+    .content {
+        padding: 30px 17px 24px;
+    }
+
+    .welcomeLine h1 {
+        font-size: 26px;
+    }
+
+    .welcomeLine p {
+        max-width: 250px;
+        line-height: 1.5;
+        font-size: 11px;
+    }
+
+    .dateStamp strong {
+        max-width: 100px;
+        line-height: 1.35;
+        font-size: 10px;
+    }
+
+    .statsRow {
+        margin: 23px 0 32px;
+    }
+
+    .stat {
+        min-height: 78px;
+        padding: 14px 11px;
+    }
+
+    .stat span {
+        max-width: 72px;
+        line-height: 1.4;
+        font-size: 7px;
+    }
+
+    .stat strong {
+        margin-top: 7px;
+        font-size: 19px;
+    }
+
+    .stat> :global(.icon) {
+        display: none;
+    }
+
+    .taskControls {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .taskControls :global(.ui.input),
+    .taskControls :global(.ui.input input) {
+        width: 100%;
+    }
+
+    .filterTabs {
+        justify-content: stretch;
+    }
+
+    .filterTabs button {
+        flex: 1;
+    }
+
+    .taskRow {
+        grid-template-columns: 20px minmax(0, 1fr);
+        column-gap: 8px;
+        padding: 14px 3px;
+    }
+
+    .rowActions {
+        grid-column: 2;
+        justify-content: flex-end;
+        margin-top: 3px;
+    }
+
+    .taskMeta {
+        gap: 7px;
+    }
+
+    .taskNote {
+        white-space: normal;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    .footerNote {
+        margin-top: 28px;
+    }
+
+    .formColumns {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+}

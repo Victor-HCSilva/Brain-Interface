@@ -5,30 +5,29 @@ export default async function createUpdateOrDelete({
     method
 }: {
     url: string,
-    token: string,
-    bodyData: Record<string, any>
+    token?: string,
+    bodyData: Record<string, any>,
     method: string
 }) {
     try {
+        const cleanToken = (token || "").replace(/^(Bearer\s+)+/i, "").trim();
+        const headers: Record<string, string> = {
+            "Content-Type": "application/json"
+        };
+        if (cleanToken) {
+            headers["Authorization"] = `Bearer ${cleanToken}`;
+        }
+
         const res = await fetch(url, {
             method: method,
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
+            headers,
             body: JSON.stringify(bodyData)
         });
 
         const data = await res.json();
-        return data
+        return data;
     } catch (err) {
-        //TODO: Criar modo DEBUG
-        console.log("erro:" + err)
-        return (
-            <div >
-                {}
-            </div>
-        );
+        console.log("erro:" + err);
+        return null;
     }
 }
-

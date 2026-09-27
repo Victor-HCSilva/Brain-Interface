@@ -1,0 +1,157 @@
+.overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(3px);
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    animation: fadeIn .2s ease;
+}
+.panel {
+    width: min(560px, 100vw);
+    height: 100vh;
+    background: var(--surface);
+    box-shadow: -4px 0 32px rgba(0,0,0,.2);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideIn .26s cubic-bezier(.16,1,.3,1);
+}
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--line);
+    flex-shrink: 0;
+}
+.headerTitle {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.closeBtn {
+    width: 28px; height: 28px;
+    border-radius: 4px; border: 0;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer; font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s, color .15s;
+}
+.closeBtn:hover { background: var(--surface-soft); color: var(--ink); }
+.body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.newGroupForm { display: flex; gap: 8px; }
+.groupInput {
+    flex: 1;
+    padding: 9px 11px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    color: var(--ink);
+    font-size: 13px;
+    outline: none;
+    font-family: inherit;
+    transition: border-color .15s;
+}
+.groupInput:focus { border-color: var(--accent); }
+.addBtn {
+    padding: 9px 16px;
+    background: var(--accent);
+    color: #fff;
+    border: 0;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity .15s;
+    white-space: nowrap;
+}
+.addBtn:hover { opacity: .85; }
+.addBtn:disabled { opacity: .5; cursor: not-allowed; }
+.groupList { display: flex; flex-direction: column; gap: 10px; }
+.groupCard {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+    overflow: hidden;
+    transition: box-shadow .15s;
+}
+.groupCard:hover { box-shadow: var(--shadow); }
+.groupCardHead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--surface-soft);
+    border-bottom: 1px solid var(--line);
+}
+.groupName {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.groupMemberCount { font-size: 10px; color: var(--muted); font-weight: 400; }
+.groupCardActions { display: flex; gap: 4px; }
+.iconBtn {
+    width: 28px; height: 28px;
+    border-radius: 5px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    transition: background .15s, color .15s;
+}
+.iconBtn:hover { background: var(--surface); color: var(--ink); }
+.iconBtnDanger:hover { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
+.memberList { padding: 10px 16px; display: flex; flex-direction: column; gap: 6px; }
+.memberRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    background: var(--surface-soft);
+    border-radius: 6px;
+    font-size: 12px;
+    color: var(--ink);
+}
+.addMemberForm { display: flex; gap: 6px; padding: 0 16px 12px; }
+.sectionTitle {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin: 0 0 8px;
+}
+.emptyState {
+    padding: 32px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    border: 1px dashed var(--line);
+    border-radius: 10px;
+}
+.errorMsg { padding: 10px 14px; background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; border-radius: 6px; font-size: 12px; }
+.successMsg { padding: 10px 14px; background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent); border-radius: 6px; font-size: 12px; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideIn { from { transform: translateX(50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@media (max-width: 640px) { .panel { width: 100vw; } }

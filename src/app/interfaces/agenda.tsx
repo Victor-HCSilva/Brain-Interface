@@ -1,11 +1,11 @@
 interface Agenda {
     user: number
-    priority: string
-    accent_color: string
-    title: string
+    titulo: string
+    descricao: string
+    tipo_de_evento: string
+    importancia: string
+    dia_do_evento: Date
     description_event_type: string
-    importance: string
-    event_date: Date
     is_active: boolean
     created_at: Date
     update_at: Date

@@ -1,24 +1,29 @@
 {
-  "name": "todo-interface",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
-  },
-  "dependencies": {
-    "next": "16.3.5",
-    "react": "19.2.8",
-    "react-dom": "19.2.8"
-  },
-  "devDependencies": {
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.3.5",
-    "typescript": "^5"
-  }
+    "name": "todo-interface",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "dev": "next dev",
+        "build": "next build",
+        "start": "next start",
+        "lint": "eslint",
+        "postinstall": "python3 -c \"for p in [\\\"node_modules/semantic-ui-css/semantic.min.css\\\", \\\"node_modules/semantic-ui-css/semantic.css\\\"]: (open(p,\\\"w\\\").write(open(p).read().replace(\\\":after .header\\\", \\\" .header\\\"))) if __import__(\\\"os\\\").path.exists(p) else None\""
+    },
+    "dependencies": {
+        "@types/dompurify": "^3.0.5",
+        "dompurify": "^3.4.16",
+        "marked": "^18.0.14",
+        "next": "16.3.5",
+        "react": "19.2.8",
+        "react-dom": "19.2.8",
+        "semantic-ui-css": "^2.5.0"
+    },
+    "devDependencies": {
+        "@types/node": "^20",
+        "@types/react": "^19",
+        "@types/react-dom": "^19",
+        "eslint": "^9",
+        "eslint-config-next": "16.3.5",
+        "typescript": "^5"
+    }
 }
