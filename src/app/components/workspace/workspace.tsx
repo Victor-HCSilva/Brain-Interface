@@ -13,6 +13,7 @@ import TodoDetail from "../todo-detail/todo-detail";
 import Groups from "../groups/groups";
 import AgendaView, { type AgendaEvent } from "../agenda/agenda-view";
 import AboutView from "../about/about-view";
+import LoginPage from "../login-page/login-page";
 
 type UiButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
     basic?: boolean;
@@ -118,15 +119,6 @@ interface User {
     first_name: string;
 }
 
-interface AgendaEvent {
-    id: number;
-    titulo: string;
-    descricao: string;
-    tipo_de_evento: string;
-    importancia: string;
-    dia_do_evento: string;
-}
-
 interface ChecklistItem {
     id: number;
     descricao: string;
@@ -208,6 +200,8 @@ export default function Workspace() {
     const [checklistTitle, setChecklistTitle] = useState("");
     const [detailTodo, setDetailTodo] = useState<Todo | null>(null);
     const [groupsOpen, setGroupsOpen] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [folderPickerOpen, setFolderPickerOpen] = useState(false);
 
     useEffect(() => {
         const storedTheme = window.localStorage.getItem("todo-theme");
@@ -511,35 +505,13 @@ export default function Workspace() {
 
     if (!user) {
         return (
-            <main className={styles.loginPage}>
-                <section className={styles.loginBrand}>
-                    <div className={styles.brandMark}><Icon name="leaf" /></div>
-                    <span className={styles.kicker}>BRAIN / ESPAÇO PESSOAL</span>
-                    <h1>Um lugar para<br />pensar com clareza.</h1>
-                    <p>Suas tarefas, anotações e próximos passos em um só lugar.</p>
-                    <div className={styles.loginFootnote}><span /> Organização que acompanha seu ritmo.</div>
-                </section>
-                <section className={styles.loginPanel}>
-                    <div className={styles.loginFormWrap}>
-                        <span className={styles.kicker}>BEM-VINDO DE VOLTA</span>
-                        <h2>Entre no seu espaço</h2>
-                        <p className={styles.subtle}>Use as mesmas credenciais da sua conta.</p>
-                        <Form onSubmit={handleLogin} className={styles.loginForm}>
-                            <Form.Field>
-                                <label htmlFor="username">Usuário</label>
-                                <Input id="username" autoComplete="username" icon="user" iconPosition="left" value={username} onChange={(event: ChangeEvent<HTMLInputElement>) => setUsername(event.target.value)} required />
-                            </Form.Field>
-                            <Form.Field>
-                                <label htmlFor="password">Senha</label>
-                                <Input id="password" type="password" autoComplete="current-password" icon="lock" iconPosition="left" value={password} onChange={(event: ChangeEvent<HTMLInputElement>) => setPassword(event.target.value)} required />
-                            </Form.Field>
-                            {loginError && <Message negative size="small" content={loginError} />}
-                            <Button primary fluid size="large" loading={saving} disabled={saving} type="submit">Entrar <Icon name="arrow right" /></Button>
-                        </Form>
-                        <span className={styles.secureNote}><Icon name="lock" /> Sessão protegida e privada</span>
-                    </div>
-                </section>
-            </main>
+            <LoginPage onLogin={() => {
+                // Re-check session after login
+                fetch("/api/auth/me/")
+                    .then((r) => r.json())
+                    .then((u) => setUser(u as User))
+                    .catch(() => null);
+            }} />
         );
     }
 
@@ -549,20 +521,30 @@ export default function Workspace() {
 
     return (
         <main className={styles.appShell}>
-            <aside className={styles.sidebar}>
-                <a className={styles.brand} href="#inicio"><span className={styles.brandMark}><Icon name="leaf" /></span><span>brain<small>ESPAÇO PESSOAL</small></span></a>
+            {mobileMenuOpen && (
+                <div
+                    className={styles.mobileDrawerOverlay}
+                    onClick={() => setMobileMenuOpen(false)}
+                />
+            )}
+
+            <aside className={`${styles.sidebar} ${mobileMenuOpen ? styles.sidebarMobileOpen : ""}`}>
+                <div className={styles.sidebarHeaderMobile}>
+                    <a className={styles.brand} href="#inicio"><span className={styles.brandMark}><Icon name="leaf" /></span><span>brain<small>ESPAÇO PESSOAL</small></span></a>
+                    <button className={styles.closeDrawerBtn} onClick={() => setMobileMenuOpen(false)} title="Fechar menu"><Icon name="close" /></button>
+                </div>
                 <div className={styles.navCaption}>VISÃO GERAL</div>
-                <button className={`${styles.navItem} ${styles.mobileNav} ${view === "tasks" && selectedFolder === "all" && filter === "all" ? styles.navActive : ""}`} onClick={() => { setView("tasks"); setSelectedFolder("all"); setFilter("all"); setPage(1); }}><Icon name="inbox" /> Tarefas</button>
-                <button className={`${styles.navItem} ${view === "tasks" && filter === "open" ? styles.navActive : ""}`} onClick={() => { setView("tasks"); setFilter("open"); }}><Icon name="circle outline" /> Em andamento <span className={styles.navCount}>{pendingCount}</span></button>
-                <button className={`${styles.navItem} ${view === "tasks" && filter === "done" ? styles.navActive : ""}`} onClick={() => { setView("tasks"); setFilter("done"); }}><Icon name="check circle outline" /> Concluídas <span className={styles.navCount}>{completedCount}</span></button>
-                <button className={`${styles.navItem} ${view === "tasks" && filter === "favorites" ? styles.navActive : ""}`} onClick={() => { setView("tasks"); setFilter("favorites"); }}><Icon name="star outline" /> Favoritas</button>
-                <button className={`${styles.navItem} ${styles.mobileNav} ${view === "agenda" ? styles.navActive : ""}`} onClick={() => { setView("agenda"); setPage(1); }}><Icon name="calendar alternate outline" /> Agenda</button>
-                <button className={`${styles.navItem} ${styles.mobileNav} ${view === "checklist" ? styles.navActive : ""}`} onClick={() => { setView("checklist"); setPage(1); }}><Icon name="list ul" /> Checklist</button>
-                <button className={styles.navItem} onClick={() => setGroupsOpen(true)}><Icon name="users" /> Grupos de Colaboração</button>
-                <button className={`${styles.navItem} ${view === "sobre" ? styles.navActive : ""}`} onClick={() => setView("sobre")}><Icon name="info circle" /> Sobre o Sistema</button>
-                <div className={styles.folderHeading}><span className={styles.navCaption}>PASTAS</span><Button icon basic size="mini" title="Criar pasta" onClick={() => setFolderOpen(true)}><Icon name="plus" /></Button></div>
-                <button className={`${styles.navItem} ${view === "tasks" && selectedFolder === null ? styles.navActive : ""}`} onClick={() => { setView("tasks"); setSelectedFolder(null); setFilter("all"); setPage(1); }}><Icon name="folder outline" /> Sem pasta</button>
-                {folders.map((folder) => <button key={folder.id} className={`${styles.navItem} ${view === "tasks" && selectedFolder === folder.id ? styles.navActive : ""}`} onClick={() => { setView("tasks"); setSelectedFolder(folder.id); setFilter("all"); setPage(1); }}><Icon name="folder outline" /> <span className={styles.folderName}>{folder.name}</span></button>)}
+                <button className={`${styles.navItem} ${view === "tasks" && selectedFolder === "all" && filter === "all" ? styles.navActive : ""}`} onClick={() => { setView("tasks"); setSelectedFolder("all"); setFilter("all"); setPage(1); setMobileMenuOpen(false); }}><Icon name="inbox" /> Tarefas</button>
+                <button className={`${styles.navItem} ${view === "tasks" && filter === "open" ? styles.navActive : ""}`} onClick={() => { setView("tasks"); setFilter("open"); setMobileMenuOpen(false); }}><Icon name="circle outline" /> Em andamento <span className={styles.navCount}>{pendingCount}</span></button>
+                <button className={`${styles.navItem} ${view === "tasks" && filter === "done" ? styles.navActive : ""}`} onClick={() => { setView("tasks"); setFilter("done"); setMobileMenuOpen(false); }}><Icon name="check circle outline" /> Concluídas <span className={styles.navCount}>{completedCount}</span></button>
+                <button className={`${styles.navItem} ${view === "tasks" && filter === "favorites" ? styles.navActive : ""}`} onClick={() => { setView("tasks"); setFilter("favorites"); setMobileMenuOpen(false); }}><Icon name="star outline" /> Favoritas</button>
+                <button className={`${styles.navItem} ${view === "agenda" ? styles.navActive : ""}`} onClick={() => { setView("agenda"); setPage(1); setMobileMenuOpen(false); }}><Icon name="calendar alternate outline" /> Agenda</button>
+                <button className={`${styles.navItem} ${view === "checklist" ? styles.navActive : ""}`} onClick={() => { setView("checklist"); setPage(1); setMobileMenuOpen(false); }}><Icon name="list ul" /> Checklist</button>
+                <button className={styles.navItem} onClick={() => { setGroupsOpen(true); setMobileMenuOpen(false); }}><Icon name="users" /> Grupos de Colaboração</button>
+                <button className={`${styles.navItem} ${view === "sobre" ? styles.navActive : ""}`} onClick={() => { setView("sobre"); setMobileMenuOpen(false); }}><Icon name="info circle" /> Sobre o Sistema</button>
+                <div className={styles.folderHeading}><span className={styles.navCaption}>PASTAS</span><Button icon basic size="mini" title="Criar pasta" onClick={() => { setFolderOpen(true); setMobileMenuOpen(false); }}><Icon name="plus" /></Button></div>
+                <button className={`${styles.navItem} ${view === "tasks" && selectedFolder === null ? styles.navActive : ""}`} onClick={() => { setView("tasks"); setSelectedFolder(null); setFilter("all"); setPage(1); setMobileMenuOpen(false); }}><Icon name="folder outline" /> Sem pasta</button>
+                {folders.map((folder) => <button key={folder.id} className={`${styles.navItem} ${view === "tasks" && selectedFolder === folder.id ? styles.navActive : ""}`} onClick={() => { setView("tasks"); setSelectedFolder(folder.id); setFilter("all"); setPage(1); setMobileMenuOpen(false); }}><Icon name="folder outline" /> <span className={styles.folderName}>{folder.name}</span></button>)}
                 <div className={styles.sidebarBottom}>
                     <div className={styles.profile}><span className={styles.avatar}>{greetingName.slice(0, 1).toUpperCase()}</span><span className={styles.profileName}>{greetingName}<small>{user.username}</small></span><Button icon basic size="mini" title="Sair" onClick={handleLogout}><Icon name="sign out" /></Button></div>
                 </div>
@@ -570,7 +552,12 @@ export default function Workspace() {
 
             <section className={styles.mainPanel}>
                 <header className={styles.topbar}>
-                    <span className={styles.breadcrumb}>Meu espaço <Icon name="chevron right" /> {view === "agenda" ? "Agenda Mensal" : view === "checklist" ? "Checklist" : view === "sobre" ? "Sobre o Sistema" : selectedFolder === "all" ? "Tarefas" : selectedFolder === null ? "Sem pasta" : folders.find((folder) => folder.id === selectedFolder)?.name ?? "Pasta"}</span>
+                    <div className={styles.topbarLeft}>
+                        <button className={styles.mobileMenuBtn} onClick={() => setMobileMenuOpen(true)} title="Abrir menu">
+                            <Icon name="bars" />
+                        </button>
+                        <span className={styles.breadcrumb}>Meu espaço <Icon name="chevron right" /> {view === "agenda" ? "Agenda Mensal" : view === "checklist" ? "Checklist" : view === "sobre" ? "Sobre o Sistema" : selectedFolder === "all" ? "Tarefas" : selectedFolder === null ? "Sem pasta" : folders.find((folder) => folder.id === selectedFolder)?.name ?? "Pasta"}</span>
+                    </div>
                     <div className={styles.topActions}>
                         <Button basic title="Grupos de Colaboração" onClick={() => setGroupsOpen(true)}><Icon name="users" /> Grupos</Button>
                         <Button icon basic title={theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"} onClick={() => setTheme(theme === "dark" ? "light" : "dark")}><Icon name={theme === "dark" ? "sun" : "moon"} /></Button>
@@ -766,6 +753,81 @@ export default function Workspace() {
 
             {/* Modal de Gestão de Grupos de Colaboração */}
             {groupsOpen && <Groups onClose={() => setGroupsOpen(false)} />}
+
+            {/* Modal de Seleção de Pastas no Mobile */}
+            <Modal open={folderPickerOpen} onClose={() => setFolderPickerOpen(false)} size="tiny" closeIcon>
+                <Modal.Header>Suas Pastas</Modal.Header>
+                <Modal.Content>
+                    <div className={styles.folderPickerList}>
+                        <button
+                            className={`${styles.folderPickerItem} ${selectedFolder === "all" ? styles.folderPickerActive : ""}`}
+                            onClick={() => { setView("tasks"); setSelectedFolder("all"); setFilter("all"); setPage(1); setFolderPickerOpen(false); }}
+                        >
+                            <Icon name="inbox" /> Todas as Tarefas
+                        </button>
+                        <button
+                            className={`${styles.folderPickerItem} ${selectedFolder === null ? styles.folderPickerActive : ""}`}
+                            onClick={() => { setView("tasks"); setSelectedFolder(null); setFilter("all"); setPage(1); setFolderPickerOpen(false); }}
+                        >
+                            <Icon name="folder outline" /> Sem pasta
+                        </button>
+                        {folders.map((folder) => (
+                            <button
+                                key={folder.id}
+                                className={`${styles.folderPickerItem} ${selectedFolder === folder.id ? styles.folderPickerActive : ""}`}
+                                onClick={() => { setView("tasks"); setSelectedFolder(folder.id); setFilter("all"); setPage(1); setFolderPickerOpen(false); }}
+                            >
+                                <Icon name="folder outline" /> {folder.name}
+                            </button>
+                        ))}
+                    </div>
+                </Modal.Content>
+                <Modal.Actions>
+                    <Button basic onClick={() => setFolderPickerOpen(false)}>Cancelar</Button>
+                    <Button primary onClick={() => { setFolderPickerOpen(false); setFolderOpen(true); }}>
+                        <Icon name="plus" /> Criar nova pasta
+                    </Button>
+                </Modal.Actions>
+            </Modal>
+
+            {/* Barra de Navegação Inferior para Celulares */}
+            <nav className={styles.mobileBottomBar}>
+                <button
+                    className={`${styles.mobileNavItem} ${view === "tasks" && selectedFolder === "all" ? styles.navActive : ""}`}
+                    onClick={() => { setView("tasks"); setSelectedFolder("all"); setFilter("all"); setPage(1); }}
+                >
+                    <Icon name="inbox" />
+                    <span>Tarefas</span>
+                </button>
+                <button
+                    className={`${styles.mobileNavItem} ${view === "agenda" ? styles.navActive : ""}`}
+                    onClick={() => { setView("agenda"); setPage(1); }}
+                >
+                    <Icon name="calendar alternate outline" />
+                    <span>Agenda</span>
+                </button>
+                <button
+                    className={`${styles.mobileNavItem} ${view === "checklist" ? styles.navActive : ""}`}
+                    onClick={() => { setView("checklist"); setPage(1); }}
+                >
+                    <Icon name="list ul" />
+                    <span>Checklist</span>
+                </button>
+                <button
+                    className={`${styles.mobileNavItem} ${selectedFolder !== "all" && view === "tasks" ? styles.navActive : ""}`}
+                    onClick={() => setFolderPickerOpen(true)}
+                >
+                    <Icon name="folder outline" />
+                    <span>Pastas</span>
+                </button>
+                <button
+                    className={`${styles.mobileNavItem} ${mobileMenuOpen ? styles.navActive : ""}`}
+                    onClick={() => setMobileMenuOpen(true)}
+                >
+                    <Icon name="bars" />
+                    <span>Menu</span>
+                </button>
+            </nav>
         </main>
     );
 }
