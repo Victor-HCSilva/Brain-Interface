@@ -204,13 +204,16 @@ export default function Workspace() {
     const [folderPickerOpen, setFolderPickerOpen] = useState(false);
 
     useEffect(() => {
-        const storedTheme = window.localStorage.getItem("todo-theme");
-        if (storedTheme === "dark") {
-            setTheme("dark");
-            document.documentElement.dataset.theme = "dark";
-        } else if (storedTheme === "light") {
-            setTheme("light");
-            document.documentElement.dataset.theme = "light";
+        try {
+            const storedTheme = window.localStorage.getItem("todo-theme");
+            if (storedTheme === "dark" || storedTheme === "light") {
+                setTheme(storedTheme);
+                document.documentElement.dataset.theme = storedTheme;
+            } else if (document.documentElement.dataset.theme === "dark" || document.documentElement.dataset.theme === "light") {
+                setTheme(document.documentElement.dataset.theme as "light" | "dark");
+            }
+        } catch {
+            // ignore
         }
         async function checkSession() {
             try {
@@ -226,10 +229,18 @@ export default function Workspace() {
         void checkSession();
     }, []);
 
-    useEffect(() => {
-        document.documentElement.dataset.theme = theme;
-        window.localStorage.setItem("todo-theme", theme);
-    }, [theme]);
+    const toggleTheme = useCallback(() => {
+        setTheme((prevTheme) => {
+            const nextTheme = prevTheme === "dark" ? "light" : "dark";
+            document.documentElement.dataset.theme = nextTheme;
+            try {
+                window.localStorage.setItem("todo-theme", nextTheme);
+            } catch {
+                // ignore
+            }
+            return nextTheme;
+        });
+    }, []);
 
     const loadWorkspace = useCallback(async (requestedPage = page) => {
         setLoading(true);
@@ -566,7 +577,7 @@ export default function Workspace() {
                     </div>
                     <div className={styles.topActions}>
                         <Button basic title="Grupos de Colaboração" onClick={() => setGroupsOpen(true)}><Icon name="users" /> Grupos</Button>
-                        <Button icon basic title={theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"} onClick={() => setTheme(theme === "dark" ? "light" : "dark")}><Icon name={theme === "dark" ? "sun" : "moon"} /></Button>
+                        <Button icon basic title={theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"} onClick={toggleTheme}><Icon name={theme === "dark" ? "sun" : "moon"} /></Button>
                         {view !== "sobre" && (
                             <Button primary onClick={view === "tasks" ? openNewTask : view === "agenda" ? () => openNewEvent() : () => setChecklistOpen(true)}>
                                 <Icon name="plus" /> {view === "tasks" ? "Nova tarefa" : view === "agenda" ? "Novo evento" : "Nova lista"}

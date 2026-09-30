@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useState, useEffect, type ChangeEvent, type FormEvent } from "react";
 import styles from "./login-page.module.css";
 
 interface Props {
@@ -17,6 +17,34 @@ export default function LoginPage({ onLogin }: Props) {
     const [error, setError] = useState("");
     const [successMsg, setSuccessMsg] = useState("");
     const [showPassword, setShowPassword] = useState(false);
+    const [theme, setTheme] = useState<"light" | "dark">("light");
+
+    useEffect(() => {
+        try {
+            const stored = window.localStorage.getItem("todo-theme");
+            if (stored === "dark" || stored === "light") {
+                setTheme(stored);
+                document.documentElement.dataset.theme = stored;
+            } else if (document.documentElement.dataset.theme === "dark" || document.documentElement.dataset.theme === "light") {
+                setTheme(document.documentElement.dataset.theme as "light" | "dark");
+            }
+        } catch {
+            // ignore
+        }
+    }, []);
+
+    const toggleTheme = () => {
+        setTheme((prev) => {
+            const next = prev === "dark" ? "light" : "dark";
+            document.documentElement.dataset.theme = next;
+            try {
+                window.localStorage.setItem("todo-theme", next);
+            } catch {
+                // ignore
+            }
+            return next;
+        });
+    };
 
     function switchMode(newMode: "login" | "register") {
         setMode(newMode);
@@ -149,6 +177,31 @@ export default function LoginPage({ onLogin }: Props) {
 
             {/* ── Form side ───────────────────────────── */}
             <section className={styles.formSide}>
+                <button
+                    type="button"
+                    className={styles.themeToggleBtn}
+                    onClick={toggleTheme}
+                    aria-label={theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"}
+                    title={theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"}
+                >
+                    {theme === "dark" ? (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="5" />
+                            <line x1="12" y1="1" x2="12" y2="3" />
+                            <line x1="12" y1="21" x2="12" y2="23" />
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                            <line x1="1" y1="12" x2="3" y2="12" />
+                            <line x1="21" y1="12" x2="23" y2="12" />
+                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                        </svg>
+                    ) : (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                        </svg>
+                    )}
+                </button>
                 <div className={styles.formWrap}>
                     {/* Tab Switcher */}
                     <div className={styles.modeSwitcher} role="tablist" aria-label="Acesso à conta">
