@@ -111,6 +111,10 @@ function priorityBadge(p: string) {
 
 function formatImageUrl(url?: string | null): string {
     if (!url) return "";
+    const mediaIndex = url.indexOf("/media/");
+    if (mediaIndex !== -1) {
+        return url.substring(mediaIndex);
+    }
     return url.replace(/^https?:\/\/(127\.0\.0\.1|localhost):8000/, "");
 }
 

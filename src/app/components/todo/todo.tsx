@@ -19,7 +19,7 @@ export function ShowTodos({ todos }: { todos: TODO[] }) {
                     </div>
 
                     {/* Anotação */}
-                    <p style={{ color: "#666" }}>{todo.anotacao}</p>
+                    <p style={{ color: "#555" }}>{todo.anotacao}</p>
 
                     {/* Badges / Informações adicionais */}
                     <div style={{ display: "flex", gap: "12px", fontSize: "14px" }}>

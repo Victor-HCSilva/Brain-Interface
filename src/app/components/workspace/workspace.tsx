@@ -205,7 +205,13 @@ export default function Workspace() {
 
     useEffect(() => {
         const storedTheme = window.localStorage.getItem("todo-theme");
-        if (storedTheme === "dark" || storedTheme === "light") setTheme(storedTheme);
+        if (storedTheme === "dark") {
+            setTheme("dark");
+            document.documentElement.dataset.theme = "dark";
+        } else if (storedTheme === "light") {
+            setTheme("light");
+            document.documentElement.dataset.theme = "light";
+        }
         async function checkSession() {
             try {
                 const response = await fetch("/api/auth/me/");

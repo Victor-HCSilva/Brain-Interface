@@ -538,7 +538,8 @@
 
 .taskControls :global(.ui.input input) {
     width: 190px;
-    padding: 10px 11px !important;
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
     font-size: 11px;
     border-radius: 5px !important;
 }
