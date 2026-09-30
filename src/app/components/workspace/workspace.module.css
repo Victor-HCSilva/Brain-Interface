@@ -1127,3 +1127,79 @@
         gap: 0;
     }
 }
+/* ── Checklists ─────────────────────────── */
+.checklistBlock {
+    background: var(--surface-soft);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.checklistBlock header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+}
+
+.checklistBlock header h3 {
+    margin: 0 0 4px;
+    font-size: 16px;
+    color: var(--ink);
+}
+
+.checklistBlock header span {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.checklistItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    margin-bottom: 10px;
+    gap: 12px;
+}
+
+.checklistItem span {
+    flex: 1;
+    font-size: 14px;
+    color: var(--ink);
+    word-break: break-word;
+}
+
+.checklistItem .itemDone {
+    text-decoration: line-through;
+    color: var(--muted);
+}
+
+.checklistItem select {
+    padding: 6px 10px;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: var(--surface-soft);
+    color: var(--ink);
+    font-size: 12px;
+    outline: none;
+}
+
+.addItemForm {
+    display: flex !important;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.addItemForm :global(.ui.input) {
+    flex: 1;
+}
+
+.addItemForm :global(.ui.input input) {
+    border-radius: 6px !important;
+}
