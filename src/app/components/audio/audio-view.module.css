@@ -1,0 +1,279 @@
+.audioView {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: min(100%, 980px);
+    margin: 0 auto;
+}
+
+.heading,
+.recordingHeader,
+.libraryHeading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.heading h1,
+.libraryHeading h2 {
+    margin: 6px 0;
+    color: var(--ink);
+}
+
+.heading p,
+.libraryHeading span,
+.recordingHeader span,
+.hint,
+.fileName {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.heading p {
+    margin: 0;
+}
+
+.kicker {
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+}
+
+.count {
+    white-space: nowrap;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.recorder,
+.recordingCard {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+}
+
+.recorder h2 {
+    margin: 0;
+    color: var(--ink);
+    font-size: 16px;
+}
+
+.recordingActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.secondaryButton,
+.stopButton,
+.primaryButton,
+.deleteButton,
+.todoLink button,
+.linkForm button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 38px;
+    padding: 8px 13px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    font: inherit;
+    cursor: pointer;
+}
+
+.secondaryButton {
+    color: var(--ink);
+    background: var(--surface);
+}
+
+.secondaryButton:has(input[type="file"]) {
+    cursor: pointer;
+}
+
+.stopButton,
+.deleteButton {
+    color: #b42323;
+    background: var(--surface);
+}
+
+.primaryButton,
+.linkForm button {
+    color: var(--accent-contrast);
+    border-color: var(--accent);
+    background: var(--accent);
+}
+
+.primaryButton:disabled,
+.linkForm button:disabled {
+    opacity: .6;
+    cursor: wait;
+}
+
+.deleteButton {
+    min-width: 38px;
+    padding: 8px;
+}
+
+.formFields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: end;
+    gap: 12px;
+}
+
+.fileName,
+.player,
+.primaryButton {
+    grid-column: 1 / -1;
+}
+
+.player {
+    width: 100%;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.field small {
+    color: var(--muted);
+    font-weight: 400;
+}
+
+.field input,
+.field select,
+.linkForm select {
+    width: 100%;
+    min-height: 38px;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    color: var(--ink);
+    background: var(--surface);
+    font: inherit;
+}
+
+.hint {
+    margin: 0;
+}
+
+.libraryHeading {
+    margin-top: 6px;
+}
+
+.libraryHeading h2 {
+    font-size: 18px;
+}
+
+.recordingList {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+    align-items: start;
+    gap: 14px;
+}
+
+.recordingHeader {
+    align-items: flex-start;
+}
+
+.recordingHeader h3 {
+    margin: 0 0 4px;
+    color: var(--ink);
+    font-size: 15px;
+}
+
+.recordingHeader span {
+    font-size: 11px;
+}
+
+.recordingCard > .field {
+    margin-top: 2px;
+}
+
+.todoLink {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    color: var(--ink);
+    font-size: 12px;
+}
+
+.todoLink button {
+    min-height: 30px;
+    padding: 5px 9px;
+    color: var(--muted);
+    background: var(--surface);
+    font-size: 11px;
+}
+
+.linkForm {
+    display: flex;
+    gap: 8px;
+}
+
+.linkForm button {
+    min-height: 38px;
+}
+
+.emptyState {
+    padding: 28px;
+    border: 1px dashed var(--line);
+    border-radius: 10px;
+    color: var(--muted);
+    text-align: center;
+}
+
+.error,
+.success {
+    padding: 11px 14px;
+    border: 1px solid;
+    border-radius: 7px;
+    font-size: 13px;
+}
+
+.error {
+    color: #b42323;
+    border-color: color-mix(in srgb, #b42323 35%, var(--line));
+    background: color-mix(in srgb, #b42323 8%, var(--surface));
+}
+
+.success {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--surface);
+}
+
+@media (max-width: 640px) {
+    .heading,
+    .libraryHeading {
+        align-items: flex-start;
+    }
+
+    .formFields {
+        grid-template-columns: 1fr;
+    }
+
+    .fileName,
+    .player,
+    .primaryButton {
+        grid-column: auto;
+    }
+
+    .linkForm {
+        flex-direction: column;
+    }
+}

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import styles from "./groups.module.css";
+import { cachedFetch } from "@/lib/cachedFetch";
 
 interface Member {
     id: number;
@@ -42,7 +43,7 @@ export default function Groups({ onClose }: Props) {
     async function loadGroups() {
         setLoading(true);
         try {
-            const res = await fetch("/api/groups/");
+            const res = await cachedFetch("/api/groups/");
             if (!res.ok) throw new Error("Erro ao carregar grupos.");
             const data = await res.json() as { results?: Group[] } | Group[];
             setGroups(Array.isArray(data) ? data : (data.results ?? []));
@@ -58,7 +59,7 @@ export default function Groups({ onClose }: Props) {
         if (!newName.trim()) return;
         setCreating(true); setError("");
         try {
-            const res = await fetch("/api/groups/", {
+            const res = await cachedFetch("/api/groups/", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ name: newName.trim(), descricao: "" }),
@@ -76,7 +77,7 @@ export default function Groups({ onClose }: Props) {
     }
 
     async function deleteGroup(groupId: number) {
-        await fetch("/api/groups/" + groupId + "/", { method: "DELETE" }).catch(() => null);
+        await cachedFetch("/api/groups/" + groupId + "/", { method: "DELETE" }).catch(() => null);
         setGroups((prev) => prev.filter((g) => g.id !== groupId));
         if (expanded === groupId) setExpanded(null);
     }
@@ -87,7 +88,7 @@ export default function Groups({ onClose }: Props) {
         if (!username) return;
         setAddingMember(group.id); setError("");
         try {
-            const res = await fetch("/api/groups/" + group.id + "/members/", {
+            const res = await cachedFetch("/api/groups/" + group.id + "/members/", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username }),
@@ -105,7 +106,7 @@ export default function Groups({ onClose }: Props) {
     }
 
     async function removeMember(group: Group, userId: number) {
-        await fetch("/api/groups/" + group.id + "/members/" + userId + "/", { method: "DELETE" }).catch(() => null);
+        await cachedFetch("/api/groups/" + group.id + "/members/" + userId + "/", { method: "DELETE" }).catch(() => null);
         setGroups((prev) => prev.map((g) =>
             g.id === group.id ? { ...g, membros: g.membros.filter((m) => m.id !== userId) } : g
         ));

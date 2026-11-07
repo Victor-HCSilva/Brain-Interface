@@ -2,6 +2,7 @@
 
 import { useState, useEffect, type ChangeEvent, type FormEvent } from "react";
 import styles from "./login-page.module.css";
+import { cachedFetch } from "@/lib/cachedFetch";
 
 interface Props {
     onLogin: () => void;
@@ -76,7 +77,7 @@ export default function LoginPage({ onLogin }: Props) {
             }
 
             try {
-                const res = await fetch("/api/auth/register/", {
+                const res = await cachedFetch("/api/auth/register/", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -110,7 +111,7 @@ export default function LoginPage({ onLogin }: Props) {
 
         // Login Mode
         try {
-            const res = await fetch("/api/auth/login/", {
+            const res = await cachedFetch("/api/auth/login/", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username, password }),

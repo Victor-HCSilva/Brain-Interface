@@ -1,0 +1,278 @@
+.page {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.header h1 {
+    margin: 6px 0;
+    color: var(--ink);
+    font-size: clamp(24px, 3vw, 32px);
+}
+
+.header p,
+.cardHeading p,
+.listHeader p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.kicker {
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.3px;
+}
+
+.composeCard,
+.notificationCard {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+}
+
+.composeCard {
+    padding: 22px;
+}
+
+.cardHeading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 22px;
+}
+
+.cardIcon {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    border-radius: 11px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 18px;
+}
+
+.cardHeading h2,
+.listHeader h2 {
+    margin: 0 0 5px;
+    color: var(--ink);
+    font-size: 16px;
+}
+
+.form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.field {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.field:nth-child(3) {
+    grid-column: 1 / -1;
+}
+
+.field label {
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.field input,
+.field textarea {
+    width: 100%;
+    min-height: 42px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    outline: none;
+    background: var(--surface);
+    color: var(--ink);
+    font: inherit;
+    font-size: 13px;
+}
+
+.field textarea {
+    min-height: 112px;
+    resize: vertical;
+    line-height: 1.6;
+}
+
+.field input:focus,
+.field textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.field input:disabled,
+.field textarea:disabled {
+    cursor: not-allowed;
+    opacity: .6;
+}
+
+.hint {
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.submitButton {
+    display: inline-flex;
+    width: fit-content;
+    min-height: 40px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--accent);
+    color: var(--accent-contrast);
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.submitButton:disabled {
+    cursor: not-allowed;
+    opacity: .55;
+}
+
+.messageError,
+.messageSuccess {
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.messageError {
+    background: color-mix(in srgb, #c83333 10%, var(--surface));
+    color: var(--ink);
+}
+
+.messageSuccess {
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.listSection {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.listHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.notificationList {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.notificationCard {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px;
+}
+
+.notificationMain {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.notificationMain time {
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.notificationMain p {
+    margin: 0;
+    color: var(--ink);
+    font-size: 13px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.status {
+    display: inline-flex;
+    width: fit-content;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.statusPending {
+    color: var(--accent);
+}
+
+.statusSent {
+    color: var(--muted);
+}
+
+.recipient {
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.deleteButton {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--muted);
+    cursor: pointer;
+}
+
+.deleteButton:hover {
+    border-color: #fca5a5;
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.emptyState {
+    padding: 26px 16px;
+    border: 1px dashed var(--line);
+    border-radius: 10px;
+    color: var(--muted);
+    font-size: 13px;
+    text-align: center;
+}
+
+@media (max-width: 640px) {
+    .composeCard {
+        padding: 16px;
+    }
+
+    .form {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .field:nth-child(3) {
+        grid-column: auto;
+    }
+}

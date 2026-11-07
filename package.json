@@ -7,7 +7,7 @@
         "build": "next build",
         "start": "next start",
         "lint": "eslint",
-        "postinstall": "python3 -c \"for p in [\\\"node_modules/semantic-ui-css/semantic.min.css\\\", \\\"node_modules/semantic-ui-css/semantic.css\\\"]: (open(p,\\\"w\\\").write(open(p).read().replace(\\\":after .header\\\", \\\" .header\\\"))) if __import__(\\\"os\\\").path.exists(p) else None\""
+        "postinstall": "python3 -c \"from pathlib import Path; [p.write_text(p.read_text().replace(':after .header', ' .header')) for p in map(Path, ['node_modules/semantic-ui-css/semantic.min.css', 'node_modules/semantic-ui-css/semantic.css']) if p.exists()]\""
     },
     "dependencies": {
         "@types/dompurify": "^3.0.5",

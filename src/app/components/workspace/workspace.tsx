@@ -14,6 +14,11 @@ import Groups from "../groups/groups";
 import AgendaView, { type AgendaEvent } from "../agenda/agenda-view";
 import AboutView from "../about/about-view";
 import LoginPage from "../login-page/login-page";
+import AudioView from "../audio/audio-view";
+import DrawView from "../draw/draw-view";
+import NotificationsView from "../notifications/notifications-view";
+import GlobalSearch, { type SearchEntityType, type SearchResult } from "../global-search/global-search";
+import { cachedFetch } from "@/lib/cachedFetch";
 
 type UiButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
     basic?: boolean;
@@ -73,8 +78,9 @@ function Message({ content, negative, onDismiss, size }: { content: string; nega
     </div>;
 }
 
-function ModalRoot({ children, closeIcon, onClose, open, size = "small" }: {
+function ModalRoot({ children, className, closeIcon, onClose, open, size = "small" }: {
     children: ReactNode;
+    className?: string;
     closeIcon?: boolean;
     onClose: () => void;
     open: boolean;
@@ -82,7 +88,7 @@ function ModalRoot({ children, closeIcon, onClose, open, size = "small" }: {
 }) {
     if (!open) return null;
     return <div className={styles.modalBackdrop} onMouseDown={onClose}>
-        <div className={`ui ${size} modal visible active`} role="dialog" aria-modal="true" onMouseDown={(event) => event.stopPropagation()}>
+        <div className={`ui ${size} modal visible active ${className ?? ""}`} role="dialog" aria-modal="true" onMouseDown={(event) => event.stopPropagation()}>
             {closeIcon && <button className="ui icon basic button" type="button" aria-label="Fechar" onClick={onClose}><Icon name="close" /></button>}
             {children}
         </div>
@@ -104,6 +110,8 @@ interface Todo {
     tag: string;
     prazo_inicial: string;
     prazo_final: string;
+    email_notification_at?: string | null;
+    email_notification_message?: string;
     folder: number | null;
     created_at?: string;
     updated_at?: string;
@@ -117,6 +125,7 @@ interface Folder {
 interface User {
     username: string;
     first_name: string;
+    email?: string;
 }
 
 interface ChecklistItem {
@@ -139,6 +148,8 @@ interface TodoForm {
     prioridade: string;
     prazo_inicial: string;
     prazo_final: string;
+    email_notification_at: string;
+    email_notification_message: string;
     folder: string;
 }
 
@@ -149,12 +160,21 @@ const emptyForm: TodoForm = {
     prioridade: "Média",
     prazo_inicial: "",
     prazo_final: "",
+    email_notification_at: "",
+    email_notification_message: "",
     folder: "",
 };
 
 async function readError(response: Response) {
-    const data = await response.json().catch(() => null) as { detail?: string; non_field_errors?: string[] } | null;
-    return data?.detail ?? data?.non_field_errors?.[0] ?? "Não foi possível concluir a operação.";
+    const data = await response.json().catch(() => null) as {
+        detail?: string;
+        non_field_errors?: string[];
+        email_notification_at?: string[] | string;
+    } | null;
+    const notificationError = Array.isArray(data?.email_notification_at)
+        ? data.email_notification_at[0]
+        : data?.email_notification_at;
+    return data?.detail ?? data?.non_field_errors?.[0] ?? notificationError ?? "Não foi possível concluir a operação.";
 }
 
 function localDateTime(value?: string) {
@@ -175,7 +195,7 @@ export default function Workspace() {
     const [folders, setFolders] = useState<Folder[]>([]);
     const [agendaEvents, setAgendaEvents] = useState<AgendaEvent[]>([]);
     const [checklists, setChecklists] = useState<Checklist[]>([]);
-    const [view, setView] = useState<"tasks" | "agenda" | "checklist" | "sobre">("tasks");
+    const [view, setView] = useState<"tasks" | "agenda" | "checklist" | "audio" | "draw" | "notifications" | "sobre">("tasks");
     const [page, setPage] = useState(1);
     const [pageCount, setPageCount] = useState(1);
     const [selectedFolder, setSelectedFolder] = useState<number | "all" | null>("all");
@@ -191,14 +211,25 @@ export default function Workspace() {
     const [taskOpen, setTaskOpen] = useState(false);
     const [folderOpen, setFolderOpen] = useState(false);
     const [folderName, setFolderName] = useState("");
+    const [editingFolder, setEditingFolder] = useState<Folder | null>(null);
     const [editing, setEditing] = useState<Todo | null>(null);
     const [form, setForm] = useState<TodoForm>(emptyForm);
     const [eventOpen, setEventOpen] = useState(false);
     const [editingEvent, setEditingEvent] = useState<AgendaEvent | null>(null);
-    const [eventForm, setEventForm] = useState({ titulo: "", descricao: "", tipo_de_evento: "Lembrete", importancia: "2", dia_do_evento: "" });
+    const [eventForm, setEventForm] = useState({
+        titulo: "",
+        descricao: "",
+        tipo_de_evento: "Lembrete",
+        importancia: "2",
+        dia_do_evento: "",
+        email_notification_at: "",
+        email_notification_message: "",
+    });
     const [checklistOpen, setChecklistOpen] = useState(false);
     const [checklistTitle, setChecklistTitle] = useState("");
     const [detailTodo, setDetailTodo] = useState<Todo | null>(null);
+    const [detailTodoTab, setDetailTodoTab] = useState<"view" | "images">("view");
+    const [searchFocus, setSearchFocus] = useState<{ type: SearchEntityType; id: number } | null>(null);
     const [groupsOpen, setGroupsOpen] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [folderPickerOpen, setFolderPickerOpen] = useState(false);
@@ -217,7 +248,7 @@ export default function Workspace() {
         }
         async function checkSession() {
             try {
-                const response = await fetch("/api/auth/me/");
+                const response = await cachedFetch("/api/auth/me/");
                 if (!response.ok) return;
                 setUser(await response.json() as User);
             } catch {
@@ -248,10 +279,10 @@ export default function Workspace() {
         try {
             const folderQuery = selectedFolder === "all" ? "" : `&folder=${selectedFolder ?? "none"}`;
             const [todoResponse, folderResponse, agendaResponse, checklistResponse] = await Promise.all([
-                fetch(`/api/todos/?page=${requestedPage}${folderQuery}`),
-                fetch("/api/folders/"),
-                fetch("/api/agenda/"),
-                fetch("/api/checklist/tarefas/"),
+                cachedFetch(`/api/todos/?page=${requestedPage}${folderQuery}`),
+                cachedFetch("/api/folders/"),
+                cachedFetch("/api/agenda/"),
+                cachedFetch("/api/checklist/tarefas/"),
             ]);
             if (!todoResponse.ok) throw new Error(await readError(todoResponse));
             if (!folderResponse.ok) throw new Error(await readError(folderResponse));
@@ -277,18 +308,22 @@ export default function Workspace() {
         if (user) void loadWorkspace(page);
     }, [user, page, selectedFolder, loadWorkspace]);
 
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [view, selectedFolder]);
+
     async function handleLogin(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         setSaving(true);
         setLoginError("");
         try {
-            const response = await fetch("/api/auth/login/", {
+            const response = await cachedFetch("/api/auth/login/", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username, password }),
             });
             if (!response.ok) throw new Error(await readError(response));
-            const profile = await fetch("/api/auth/me/");
+            const profile = await cachedFetch("/api/auth/me/");
             if (!profile.ok) throw new Error(await readError(profile));
             setUser(await profile.json() as User);
             setPassword("");
@@ -300,7 +335,7 @@ export default function Workspace() {
     }
 
     async function handleLogout() {
-        await fetch("/api/auth/logout/", { method: "POST" });
+        await cachedFetch("/api/auth/logout/", { method: "POST" });
         setUser(null);
         setTodos([]);
         setFolders([]);
@@ -324,6 +359,8 @@ export default function Workspace() {
             prioridade: todo.prioridade,
             prazo_inicial: localDateTime(todo.prazo_inicial),
             prazo_final: localDateTime(todo.prazo_final),
+            email_notification_at: todo.email_notification_at ? localDateTime(todo.email_notification_at) : "",
+            email_notification_message: todo.email_notification_message ?? "",
             folder: todo.folder ? String(todo.folder) : "",
         });
         setTaskOpen(true);
@@ -338,9 +375,12 @@ export default function Workspace() {
             folder: form.folder ? Number(form.folder) : null,
             prazo_inicial: form.prazo_inicial ? new Date(form.prazo_inicial).toISOString() : undefined,
             prazo_final: form.prazo_final ? new Date(form.prazo_final).toISOString() : undefined,
+            email_notification_at: form.email_notification_at
+                ? new Date(form.email_notification_at).toISOString()
+                : null,
         };
         try {
-            const response = await fetch(`/api/todos/${editing ? `${editing.id}/` : ""}`, {
+            const response = await cachedFetch(`/api/todos/${editing ? `${editing.id}/` : ""}`, {
                 method: editing ? "PATCH" : "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
@@ -356,13 +396,13 @@ export default function Workspace() {
     }
 
     async function toggleComplete(todo: Todo) {
-        const response = await fetch(`/api/todos/${todo.id}/toggle-complete/`, { method: "PATCH" });
+        const response = await cachedFetch(`/api/todos/${todo.id}/toggle-complete/`, { method: "PATCH" });
         if (!response.ok) setError(await readError(response));
         else await loadWorkspace();
     }
 
     async function toggleFavorite(todo: Todo) {
-        const response = await fetch(`/api/todos/${todo.id}/`, {
+        const response = await cachedFetch(`/api/todos/${todo.id}/`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ favorito: !todo.favorito }),
@@ -373,28 +413,69 @@ export default function Workspace() {
 
     async function deleteTask(todo: Todo) {
         if (!window.confirm(`Excluir “${todo.titulo}”?`)) return;
-        const response = await fetch(`/api/todos/${todo.id}/`, { method: "DELETE" });
+        const response = await cachedFetch(`/api/todos/${todo.id}/`, { method: "DELETE" });
         if (!response.ok) setError(await readError(response));
         else await loadWorkspace();
     }
 
-    async function createFolder(event: FormEvent<HTMLFormElement>) {
+    function openNewFolder() {
+        setEditingFolder(null);
+        setFolderName("");
+        setFolderPickerOpen(false);
+        setMobileMenuOpen(false);
+        setFolderOpen(true);
+    }
+
+    function openEditFolder(folder: Folder) {
+        setEditingFolder(folder);
+        setFolderName(folder.name);
+        setFolderPickerOpen(false);
+        setMobileMenuOpen(false);
+        setFolderOpen(true);
+    }
+
+    function closeFolderModal() {
+        setFolderOpen(false);
+        setEditingFolder(null);
+        setFolderName("");
+    }
+
+    async function saveFolder(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         setSaving(true);
         try {
-            const response = await fetch("/api/folders/", {
-                method: "POST",
+            const response = await cachedFetch(`/api/folders/${editingFolder ? `${editingFolder.id}/` : ""}`, {
+                method: editingFolder ? "PATCH" : "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name: folderName }),
+                body: JSON.stringify({ name: folderName.trim() }),
             });
             if (!response.ok) throw new Error(await readError(response));
-            setFolderOpen(false);
-            setFolderName("");
-            await loadWorkspace();
+            const savedFolder = await response.json() as Folder;
+            setFolders((currentFolders) => editingFolder
+                ? currentFolders.map((folder) => folder.id === savedFolder.id ? savedFolder : folder)
+                : [...currentFolders, savedFolder]);
+            closeFolderModal();
         } catch (reason) {
-            setError(reason instanceof Error ? reason.message : "Não foi possível criar a pasta.");
+            setError(reason instanceof Error ? reason.message : "Não foi possível salvar a pasta.");
         } finally {
             setSaving(false);
+        }
+    }
+
+    async function deleteFolder(folder: Folder) {
+        if (!window.confirm(`Excluir a pasta "${folder.name}"? As tarefas, áudios e desenhos serão mantidos sem pasta.`)) return;
+        const response = await cachedFetch(`/api/folders/${folder.id}/`, { method: "DELETE" });
+        if (!response.ok) {
+            setError(await readError(response));
+            return;
+        }
+        setFolders((currentFolders) => currentFolders.filter((currentFolder) => currentFolder.id !== folder.id));
+        if (selectedFolder === folder.id) {
+            setSelectedFolder("all");
+            setFilter("all");
+            setPage(1);
+        } else {
+            await loadWorkspace();
         }
     }
 
@@ -406,6 +487,8 @@ export default function Workspace() {
             tipo_de_evento: "Lembrete",
             importancia: "1",
             dia_do_evento: dateStr || localDateTime(new Date().toISOString()),
+            email_notification_at: "",
+            email_notification_message: "",
         });
         setEventOpen(true);
     }
@@ -418,18 +501,62 @@ export default function Workspace() {
             tipo_de_evento: event.tipo_de_evento,
             importancia: event.importancia,
             dia_do_evento: localDateTime(event.dia_do_evento),
+            email_notification_at: event.email_notification_at
+                ? localDateTime(event.email_notification_at)
+                : "",
+            email_notification_message: event.email_notification_message ?? "",
         });
         setEventOpen(true);
+    }
+
+    async function openSearchResult(result: SearchResult) {
+        setError("");
+        try {
+            if (result.type === "folder") {
+                setView("tasks");
+                setSelectedFolder(result.id);
+                setFilter("all");
+                setPage(1);
+                return;
+            }
+            if (result.type === "task" || result.type === "image") {
+                const todoId = result.type === "image" ? result.todo_id : result.id;
+                if (!todoId) throw new Error("Não foi possível localizar a tarefa desta imagem.");
+                const response = await cachedFetch(`/api/todos/${todoId}/`);
+                if (!response.ok) throw new Error(await readError(response));
+                setView("tasks");
+                setDetailTodoTab(result.type === "image" ? "images" : "view");
+                setDetailTodo(await response.json() as Todo);
+                return;
+            }
+            if (result.type === "event") {
+                const response = await cachedFetch(`/api/agenda/${result.id}/`);
+                if (!response.ok) throw new Error(await readError(response));
+                setView("agenda");
+                openEditEvent(await response.json() as AgendaEvent);
+                return;
+            }
+            setSearchFocus({ type: result.type, id: result.id });
+            setView(result.type === "audio" ? "audio" : "draw");
+        } catch (reason) {
+            setError(reason instanceof Error ? reason.message : "Não foi possível abrir o resultado.");
+        }
     }
 
     async function saveEvent(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         setSaving(true);
         try {
-            const response = await fetch(`/api/agenda/${editingEvent ? `${editingEvent.id}/` : ""}`, {
+            const response = await cachedFetch(`/api/agenda/${editingEvent ? `${editingEvent.id}/` : ""}`, {
                 method: editingEvent ? "PATCH" : "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...eventForm, dia_do_evento: new Date(eventForm.dia_do_evento).toISOString() }),
+                body: JSON.stringify({
+                    ...eventForm,
+                    dia_do_evento: new Date(eventForm.dia_do_evento).toISOString(),
+                    email_notification_at: eventForm.email_notification_at
+                        ? new Date(eventForm.email_notification_at).toISOString()
+                        : null,
+                }),
             });
             if (!response.ok) throw new Error(await readError(response));
             setEventOpen(false);
@@ -443,7 +570,7 @@ export default function Workspace() {
 
     async function deleteEvent(event: AgendaEvent) {
         if (!window.confirm(`Excluir “${event.titulo}”?`)) return;
-        const response = await fetch(`/api/agenda/${event.id}/`, { method: "DELETE" });
+        const response = await cachedFetch(`/api/agenda/${event.id}/`, { method: "DELETE" });
         if (!response.ok) setError(await readError(response));
         else await loadWorkspace();
     }
@@ -452,7 +579,7 @@ export default function Workspace() {
         event.preventDefault();
         setSaving(true);
         try {
-            const response = await fetch("/api/checklist/tarefas/", {
+            const response = await cachedFetch("/api/checklist/tarefas/", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ titulo: checklistTitle }),
@@ -475,7 +602,7 @@ export default function Workspace() {
         if (!description) return;
         setSaving(true);
         try {
-            const response = await fetch("/api/checklist/itens/", {
+            const response = await cachedFetch("/api/checklist/itens/", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ descricao: description, tarefa: checklist.id }),
@@ -491,7 +618,7 @@ export default function Workspace() {
     }
 
     async function updateChecklistItem(item: ChecklistItem, status: string) {
-        const response = await fetch(`/api/checklist/itens/${item.id}/`, {
+        const response = await cachedFetch(`/api/checklist/itens/${item.id}/`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ feito: status }),
@@ -502,7 +629,7 @@ export default function Workspace() {
 
     async function deleteChecklist(checklist: Checklist) {
         if (!window.confirm(`Excluir a lista “${checklist.titulo}” e seus itens?`)) return;
-        const response = await fetch(`/api/checklist/tarefas/${checklist.id}/`, { method: "DELETE" });
+        const response = await cachedFetch(`/api/checklist/tarefas/${checklist.id}/`, { method: "DELETE" });
         if (!response.ok) setError(await readError(response));
         else await loadWorkspace();
     }
@@ -524,7 +651,7 @@ export default function Workspace() {
         return (
             <LoginPage onLogin={() => {
                 // Re-check session after login
-                fetch("/api/auth/me/")
+                cachedFetch("/api/auth/me/")
                     .then((r) => r.json())
                     .then((u) => setUser(u as User))
                     .catch(() => null);
@@ -552,16 +679,31 @@ export default function Workspace() {
                 </div>
                 <div className={styles.navCaption}>VISÃO GERAL</div>
                 <button className={`${styles.navItem} ${view === "tasks" && selectedFolder === "all" && filter === "all" ? styles.navActive : ""}`} onClick={() => { setView("tasks"); setSelectedFolder("all"); setFilter("all"); setPage(1); setMobileMenuOpen(false); }}><Icon name="inbox" /> Tarefas</button>
-                <button className={`${styles.navItem} ${view === "tasks" && filter === "open" ? styles.navActive : ""}`} onClick={() => { setView("tasks"); setFilter("open"); setMobileMenuOpen(false); }}><Icon name="circle outline" /> Em andamento <span className={styles.navCount}>{pendingCount}</span></button>
+                {/* <button className={`${styles.navItem} ${view === "tasks" && filter === "open" ? styles.navActive : ""}`} onClick={() => { setView("tasks"); setFilter("open"); setMobileMenuOpen(false); }}><Icon name="circle outline" /> Em andamento <span className={styles.navCount}>{pendingCount}</span></button>
                 <button className={`${styles.navItem} ${view === "tasks" && filter === "done" ? styles.navActive : ""}`} onClick={() => { setView("tasks"); setFilter("done"); setMobileMenuOpen(false); }}><Icon name="check circle outline" /> Concluídas <span className={styles.navCount}>{completedCount}</span></button>
-                <button className={`${styles.navItem} ${view === "tasks" && filter === "favorites" ? styles.navActive : ""}`} onClick={() => { setView("tasks"); setFilter("favorites"); setMobileMenuOpen(false); }}><Icon name="star outline" /> Favoritas</button>
+                <button className={`${styles.navItem} ${view === "tasks" && filter === "favorites" ? styles.navActive : ""}`} onClick={() => { setView("tasks"); setFilter("favorites"); setMobileMenuOpen(false); }}><Icon name="star outline" /> Favoritas</button> */}
                 <button className={`${styles.navItem} ${view === "agenda" ? styles.navActive : ""}`} onClick={() => { setView("agenda"); setPage(1); setMobileMenuOpen(false); }}><Icon name="calendar alternate outline" /> Agenda</button>
                 <button className={`${styles.navItem} ${view === "checklist" ? styles.navActive : ""}`} onClick={() => { setView("checklist"); setPage(1); setMobileMenuOpen(false); }}><Icon name="list ul" /> Checklist</button>
+                <button className={`${styles.navItem} ${view === "notifications" ? styles.navActive : ""}`} onClick={() => { setView("notifications"); setMobileMenuOpen(false); }}><Icon name="bell outline" /> Notificações</button>
+                <button className={`${styles.navItem} ${view === "audio" ? styles.navActive : ""}`} onClick={() => { setView("audio"); setMobileMenuOpen(false); }}><Icon name="microphone" /> Áudios</button>
+                <button className={`${styles.navItem} ${view === "draw" ? styles.navActive : ""}`} onClick={() => { setView("draw"); setMobileMenuOpen(false); }}><Icon name="paint brush" /> Draw</button>
                 <button className={styles.navItem} onClick={() => { setGroupsOpen(true); setMobileMenuOpen(false); }}><Icon name="users" /> Grupos de Colaboração</button>
                 <button className={`${styles.navItem} ${view === "sobre" ? styles.navActive : ""}`} onClick={() => { setView("sobre"); setMobileMenuOpen(false); }}><Icon name="info circle" /> Sobre o Sistema</button>
-                <div className={styles.folderHeading}><span className={styles.navCaption}>PASTAS</span><Button icon basic size="mini" title="Criar pasta" onClick={() => { setFolderOpen(true); setMobileMenuOpen(false); }}><Icon name="plus" /></Button></div>
+                <div className={styles.folderHeading}><span className={styles.navCaption}>PASTAS</span><Button icon basic size="mini" title="Criar pasta" onClick={openNewFolder}><Icon name="plus" /></Button></div>
                 <button className={`${styles.navItem} ${view === "tasks" && selectedFolder === null ? styles.navActive : ""}`} onClick={() => { setView("tasks"); setSelectedFolder(null); setFilter("all"); setPage(1); setMobileMenuOpen(false); }}><Icon name="folder outline" /> Sem pasta</button>
-                {folders.map((folder) => <button key={folder.id} className={`${styles.navItem} ${view === "tasks" && selectedFolder === folder.id ? styles.navActive : ""}`} onClick={() => { setView("tasks"); setSelectedFolder(folder.id); setFilter("all"); setPage(1); setMobileMenuOpen(false); }}><Icon name="folder outline" /> <span className={styles.folderName}>{folder.name}</span></button>)}
+                {folders.map((folder) => (
+                    <div className={styles.folderRow} key={folder.id}>
+                        <button className={`${styles.navItem} ${view === "tasks" && selectedFolder === folder.id ? styles.navActive : ""}`} onClick={() => { setView("tasks"); setSelectedFolder(folder.id); setFilter("all"); setPage(1); setMobileMenuOpen(false); }}>
+                            <Icon name="folder outline" /> <span className={styles.folderName}>{folder.name}</span>
+                        </button>
+                        <button className={styles.folderEditButton} type="button" aria-label={`Editar pasta ${folder.name}`} title={`Editar pasta ${folder.name}`} onClick={() => openEditFolder(folder)}>
+                            <Icon name="edit" />
+                        </button>
+                        <button className={styles.folderDeleteButton} type="button" aria-label={`Excluir pasta ${folder.name}`} title={`Excluir pasta ${folder.name}`} onClick={() => void deleteFolder(folder)}>
+                            <Icon name="trash alternate outline" />
+                        </button>
+                    </div>
+                ))}
                 <div className={styles.sidebarBottom}>
                     <div className={styles.profile}><span className={styles.avatar}>{greetingName.slice(0, 1).toUpperCase()}</span><span className={styles.profileName}>{greetingName}<small>{user.username}</small></span><Button icon basic size="mini" title="Sair" onClick={handleLogout}><Icon name="sign out" /></Button></div>
                 </div>
@@ -573,12 +715,15 @@ export default function Workspace() {
                         <button className={styles.mobileMenuBtn} onClick={() => setMobileMenuOpen(true)} title="Abrir menu">
                             <Icon name="bars" />
                         </button>
-                        <span className={styles.breadcrumb}>Meu espaço <Icon name="chevron right" /> {view === "agenda" ? "Agenda Mensal" : view === "checklist" ? "Checklist" : view === "sobre" ? "Sobre o Sistema" : selectedFolder === "all" ? "Tarefas" : selectedFolder === null ? "Sem pasta" : folders.find((folder) => folder.id === selectedFolder)?.name ?? "Pasta"}</span>
+                        <span className={styles.breadcrumb}>Meu espaço <Icon name="chevron right" /> {view === "agenda" ? "Agenda Mensal" : view === "checklist" ? "Checklist" : view === "notifications" ? "Notificações" : view === "audio" ? "Áudios" : view === "draw" ? "Draw" : view === "sobre" ? "Sobre o Sistema" : selectedFolder === "all" ? "Tarefas" : selectedFolder === null ? "Sem pasta" : folders.find((folder) => folder.id === selectedFolder)?.name ?? "Pasta"}</span>
+                    </div>
+                    <div className={styles.globalSearchSlot}>
+                        <GlobalSearch onSelect={(result) => void openSearchResult(result)} />
                     </div>
                     <div className={styles.topActions}>
                         <Button basic title="Grupos de Colaboração" onClick={() => setGroupsOpen(true)}><Icon name="users" /> Grupos</Button>
                         <Button icon basic title={theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"} onClick={toggleTheme}><Icon name={theme === "dark" ? "sun" : "moon"} /></Button>
-                        {view !== "sobre" && (
+                        {view !== "sobre" && view !== "audio" && view !== "draw" && view !== "notifications" && (
                             <Button primary onClick={view === "tasks" ? openNewTask : view === "agenda" ? () => openNewEvent() : () => setChecklistOpen(true)}>
                                 <Icon name="plus" /> {view === "tasks" ? "Nova tarefa" : view === "agenda" ? "Novo evento" : "Nova lista"}
                             </Button>
@@ -587,7 +732,9 @@ export default function Workspace() {
                 </header>
 
                 <div className={styles.content}>
-                    {view === "sobre" ? (
+                    {view === "notifications" ? (
+                        <NotificationsView email={user.email ?? ""} />
+                    ) : view === "sobre" ? (
                         <AboutView />
                     ) : view === "agenda" ? (
                         <AgendaView
@@ -595,6 +742,16 @@ export default function Workspace() {
                             onNewEvent={openNewEvent}
                             onEditEvent={openEditEvent}
                             onDeleteEvent={deleteEvent}
+                        />
+                    ) : view === "audio" ? (
+                        <AudioView
+                            folders={folders}
+                            focusRecordingId={searchFocus?.type === "audio" ? searchFocus.id : null}
+                        />
+                    ) : view === "draw" ? (
+                        <DrawView
+                            folders={folders}
+                            focusDrawingId={searchFocus?.type === "drawing" ? searchFocus.id : null}
                         />
                     ) : (
                         <>
@@ -615,38 +772,55 @@ export default function Workspace() {
                                         <input className={styles.taskCheck} type="checkbox" checked={todo.completo} onChange={() => void toggleComplete(todo)} aria-label={todo.completo ? "Reabrir tarefa" : "Concluir tarefa"} />
                                         <button className={styles.taskText} onClick={() => setDetailTodo(todo)}><span className={styles.taskTitle}>{todo.titulo}</span>{todo.anotacao && <span className={styles.taskNote}>{todo.anotacao}</span>}<span className={styles.taskMeta}><Label basic>{todo.tag}</Label><span><Icon name="calendar outline" /> {displayDate(todo.prazo_final)}</span>{todo.prioridade && <span className={styles.priority}><Icon name="flag outline" /> {todo.prioridade}</span>}</span></button>
                                         <div className={styles.rowActions}>
-                                            <Button icon basic title={todo.favorito ? "Remover dos favoritos" : "Adicionar aos favoritos"} onClick={() => void toggleFavorite(todo)}><Icon name={todo.favorito ? "star" : "star outline"} color={todo.favorito ? "yellow" : undefined} /></Button>
-                                            <Button icon basic title="Ver detalhes e anexos" onClick={() => setDetailTodo(todo)}><Icon name="eye" /></Button>
-                                            <Button icon basic title="Editar tarefa" onClick={() => openEditTask(todo)}><Icon name="pencil alternate" /></Button>
-                                            <Button icon basic title="Excluir tarefa" onClick={() => void deleteTask(todo)}><Icon name="trash alternate outline" /></Button>
+                                            <Button icon basic title={todo.favorito ? "Remover dos favoritos" : "Adicionar aos favoritos"} aria-label={todo.favorito ? "Remover dos favoritos" : "Adicionar aos favoritos"} onClick={() => void toggleFavorite(todo)}><Icon name={todo.favorito ? "star" : "star outline"} color={todo.favorito ? "yellow" : undefined} /></Button>
+                                            <Button icon basic title="Ver detalhes e anexos" aria-label="Ver detalhes e anexos" onClick={() => setDetailTodo(todo)}><Icon name="eye" /></Button>
+                                            <Button icon basic title="Editar tarefa" aria-label="Editar tarefa" onClick={() => openEditTask(todo)}><Icon name="edit" /></Button>
+                                            <Button icon basic title="Excluir tarefa" aria-label="Excluir tarefa" onClick={() => void deleteTask(todo)}><Icon name="trash" /></Button>
                                         </div>
                                     </article>
                                 )) : visibleChecklists.length === 0 ? <div className={styles.emptyState}><span className={styles.emptyIcon}><Icon name="list ul" /></span><strong>Nenhuma lista criada.</strong><span>Quebre um projeto em etapas menores.</span><Button basic onClick={() => setChecklistOpen(true)}><Icon name="plus" /> Criar lista</Button></div> : visibleChecklists.map((checklist) => <article key={checklist.id} className={styles.checklistBlock}><header><div><h3>{checklist.titulo}</h3><span>{checklist.itens.filter((item) => item.feito === "concluido").length} de {checklist.itens.length} concluídos</span></div><Button icon basic title="Excluir lista" onClick={() => void deleteChecklist(checklist)}><Icon name="trash alternate outline" /></Button></header>{checklist.itens.map((item) => <div className={styles.checklistItem} key={item.id}><span className={item.feito === "concluido" ? styles.itemDone : ""}>{item.descricao}</span><select aria-label={`Estado de ${item.descricao}`} value={item.feito} onChange={(event: ChangeEvent<HTMLSelectElement>) => void updateChecklistItem(item, event.target.value)}><option value="nao_iniciado">Não iniciado</option><option value="fazendo">Fazendo</option><option value="concluido">Concluído</option><option value="cancelado">Cancelado</option></select></div>)}<Form className={styles.addItemForm} onSubmit={(event) => void addChecklistItem(event, checklist)}><Input name="descricao" aria-label="Descrição do item" placeholder="Adicionar item à lista" maxLength={100} /><Button icon basic type="submit" title="Adicionar item"><Icon name="plus" /></Button></Form></article>)}
                             </section>
                             {view === "tasks" && pageCount > 1 && <div className={styles.pagination}><Button basic disabled={page <= 1} onClick={() => setPage(page - 1)}><Icon name="arrow left" /> Anterior</Button><span>Página {page} de {pageCount}</span><Button basic disabled={page >= pageCount} onClick={() => setPage(page + 1)}>Próxima <Icon name="arrow right" /></Button></div>}
+                            {view === "tasks" && selectedFolder !== "all" && (
+                                <>
+                                    <AudioView folders={folders} folderFilter={selectedFolder} />
+                                    <DrawView folders={folders} folderFilter={selectedFolder} />
+                                </>
+                            )}
                             <footer className={styles.footerNote}><Icon name="lock" /> Seus dados ficam vinculados à sua conta.</footer>
                         </>
                     )}
                 </div>
             </section>
 
-            <Modal open={taskOpen} onClose={() => setTaskOpen(false)} size="small" closeIcon>
+            <Modal open={taskOpen} onClose={() => setTaskOpen(false)} size="small" closeIcon className={styles.taskModal}>
                 <Modal.Header>{editing ? "Editar tarefa" : "Nova tarefa"}</Modal.Header>
                 <Modal.Content>
-                    <Form id="task-form" onSubmit={saveTask}>
+                    <Form id="task-form" className={styles.taskForm} onSubmit={saveTask}>
                         <Form.Field required><label htmlFor="task-title">Título</label><Input id="task-title" value={form.titulo} onChange={(event: ChangeEvent<HTMLInputElement>) => setForm({ ...form, titulo: event.target.value })} required maxLength={100} placeholder="Dê um nome para esta tarefa" /></Form.Field>
                         <Form.Field><label htmlFor="task-note">Anotação</label><TextArea id="task-note" value={form.anotacao} onChange={(event: FormEvent<HTMLTextAreaElement>) => setForm({ ...form, anotacao: event.currentTarget.value })} rows={3} maxLength={15000} placeholder="Detalhes, ideias ou contexto..." /></Form.Field>
                         <div className={styles.formColumns}><Form.Field><label htmlFor="task-tag">Categoria</label><select id="task-tag" className="ui fluid dropdown" value={form.tag} onChange={(event: ChangeEvent<HTMLSelectElement>) => setForm({ ...form, tag: event.target.value })}>{["Tarefa", "Atividade", "Anotação", "Prova", "Arquivo", "Urgente", "Importante.", "Link", "Lembrete.", "Avulso", "Outro"].map((tag) => <option key={tag}>{tag}</option>)}</select></Form.Field><Form.Field><label htmlFor="task-priority">Prioridade</label><select id="task-priority" className="ui fluid dropdown" value={form.prioridade} onChange={(event: ChangeEvent<HTMLSelectElement>) => setForm({ ...form, prioridade: event.target.value })}>{["Baixa", "Média", "Alta"].map((priority) => <option key={priority}>{priority}</option>)}</select></Form.Field></div>
                         <div className={styles.formColumns}><Form.Field><label htmlFor="task-deadline">Prazo</label><Input id="task-deadline" type="datetime-local" value={form.prazo_final} onChange={(event: ChangeEvent<HTMLInputElement>) => setForm({ ...form, prazo_final: event.target.value })} /></Form.Field><Form.Field><label htmlFor="task-folder">Pasta</label><select id="task-folder" className="ui fluid dropdown" value={form.folder} onChange={(event: ChangeEvent<HTMLSelectElement>) => setForm({ ...form, folder: event.target.value })}><option value="">Sem pasta</option>{folders.map((folder) => <option value={folder.id} key={folder.id}>{folder.name}</option>)}</select></Form.Field></div>
+                        <div className={styles.formColumns}>
+                            <Form.Field>
+                                <label htmlFor="task-email-notification">Notificar por e-mail em</label>
+                                <Input id="task-email-notification" type="datetime-local" value={form.email_notification_at} onChange={(event: ChangeEvent<HTMLInputElement>) => setForm({ ...form, email_notification_at: event.target.value })} />
+                                <small>Deixe em branco para não receber um lembrete.</small>
+                            </Form.Field>
+                            <Form.Field>
+                                <label htmlFor="task-email-message">Mensagem do e-mail (opcional)</label>
+                                <Input id="task-email-message" value={form.email_notification_message} onChange={(event: ChangeEvent<HTMLInputElement>) => setForm({ ...form, email_notification_message: event.target.value })} maxLength={500} placeholder={`Lembrete de ${form.titulo || "sua tarefa"}`} />
+                            </Form.Field>
+                        </div>
                     </Form>
                 </Modal.Content>
                 <Modal.Actions><Button basic onClick={() => setTaskOpen(false)}>Cancelar</Button><Button primary type="submit" form="task-form" loading={saving}><Icon name="check" /> Salvar tarefa</Button></Modal.Actions>
             </Modal>
 
-            <Modal open={folderOpen} onClose={() => setFolderOpen(false)} size="tiny" closeIcon>
-                <Modal.Header>Nova pasta</Modal.Header>
-                <Modal.Content><Form id="folder-form" onSubmit={createFolder}><Form.Field required><label htmlFor="folder-name">Nome da pasta</label><Input id="folder-name" value={folderName} onChange={(event: ChangeEvent<HTMLInputElement>) => setFolderName(event.target.value)} maxLength={100} placeholder="Ex.: Estudos" required /></Form.Field></Form></Modal.Content>
-                <Modal.Actions><Button basic onClick={() => setFolderOpen(false)}>Cancelar</Button><Button primary type="submit" form="folder-form" loading={saving}><Icon name="folder plus" /> Criar pasta</Button></Modal.Actions>
+            <Modal open={folderOpen} onClose={closeFolderModal} size="tiny" closeIcon>
+                <Modal.Header>{editingFolder ? "Editar pasta" : "Nova pasta"}</Modal.Header>
+                <Modal.Content><Form id="folder-form" onSubmit={saveFolder}><Form.Field required><label htmlFor="folder-name">Nome da pasta</label><Input id="folder-name" value={folderName} onChange={(event: ChangeEvent<HTMLInputElement>) => setFolderName(event.target.value)} maxLength={100} placeholder="Ex.: Estudos" required /></Form.Field></Form></Modal.Content>
+                <Modal.Actions><Button basic onClick={closeFolderModal}>Cancelar</Button><Button primary type="submit" form="folder-form" loading={saving}><Icon name={editingFolder ? "save" : "folder plus"} /> {editingFolder ? "Salvar alterações" : "Criar pasta"}</Button></Modal.Actions>
             </Modal>
 
             {/* Modal de Evento da Agenda */}
@@ -713,6 +887,28 @@ export default function Workspace() {
                                 required
                             />
                         </Form.Field>
+                        <div className={styles.formColumns}>
+                            <Form.Field>
+                                <label htmlFor="event-email-notification">Notificar por e-mail em</label>
+                                <Input
+                                    id="event-email-notification"
+                                    type="datetime-local"
+                                    value={eventForm.email_notification_at}
+                                    onChange={(event: ChangeEvent<HTMLInputElement>) => setEventForm({ ...eventForm, email_notification_at: event.target.value })}
+                                />
+                                <small>Deixe em branco para não receber um lembrete.</small>
+                            </Form.Field>
+                            <Form.Field>
+                                <label htmlFor="event-email-message">Mensagem do e-mail (opcional)</label>
+                                <Input
+                                    id="event-email-message"
+                                    value={eventForm.email_notification_message}
+                                    onChange={(event: ChangeEvent<HTMLInputElement>) => setEventForm({ ...eventForm, email_notification_message: event.target.value })}
+                                    maxLength={500}
+                                    placeholder={`Lembrete de ${eventForm.titulo || "seu evento"}`}
+                                />
+                            </Form.Field>
+                        </div>
                     </Form>
                 </Modal.Content>
                 <Modal.Actions>
@@ -752,8 +948,10 @@ export default function Workspace() {
             {/* Slide-over de Detalhe Completo do Todo */}
             {detailTodo && (
                 <TodoDetail
+                    key={detailTodo.id}
                     todo={detailTodo}
                     folders={folders}
+                    initialTab={detailTodoTab}
                     onClose={() => setDetailTodo(null)}
                     onSave={(updated) => {
                         setTodos((prev) => prev.map((t) => (t.id === updated.id ? { ...t, ...updated } : t)));
@@ -789,19 +987,26 @@ export default function Workspace() {
                             <Icon name="folder outline" /> Sem pasta
                         </button>
                         {folders.map((folder) => (
-                            <button
-                                key={folder.id}
-                                className={`${styles.folderPickerItem} ${selectedFolder === folder.id ? styles.folderPickerActive : ""}`}
-                                onClick={() => { setView("tasks"); setSelectedFolder(folder.id); setFilter("all"); setPage(1); setFolderPickerOpen(false); }}
-                            >
-                                <Icon name="folder outline" /> {folder.name}
-                            </button>
+                            <div className={styles.folderPickerRow} key={folder.id}>
+                                <button
+                                    className={`${styles.folderPickerItem} ${selectedFolder === folder.id ? styles.folderPickerActive : ""}`}
+                                    onClick={() => { setView("tasks"); setSelectedFolder(folder.id); setFilter("all"); setPage(1); setFolderPickerOpen(false); }}
+                                >
+                                    <Icon name="folder outline" /> {folder.name}
+                                </button>
+                                <button className={styles.folderEditButton} type="button" aria-label={`Editar pasta ${folder.name}`} title={`Editar pasta ${folder.name}`} onClick={() => openEditFolder(folder)}>
+                                    <Icon name="edit" />
+                                </button>
+                                <button className={styles.folderDeleteButton} type="button" aria-label={`Excluir pasta ${folder.name}`} title={`Excluir pasta ${folder.name}`} onClick={() => void deleteFolder(folder)}>
+                                    <Icon name="trash alternate outline" />
+                                </button>
+                            </div>
                         ))}
                     </div>
                 </Modal.Content>
                 <Modal.Actions>
                     <Button basic onClick={() => setFolderPickerOpen(false)}>Cancelar</Button>
-                    <Button primary onClick={() => { setFolderPickerOpen(false); setFolderOpen(true); }}>
+                    <Button primary onClick={openNewFolder}>
                         <Icon name="plus" /> Criar nova pasta
                     </Button>
                 </Modal.Actions>
@@ -829,6 +1034,22 @@ export default function Workspace() {
                 >
                     <Icon name="list ul" />
                     <span>Checklist</span>
+                </button>
+                <button
+                    className={`${styles.mobileNavItem} ${view === "audio" ? styles.navActive : ""}`}
+                    onClick={() => setView("audio")}
+                >
+                    <Icon name="microphone" />
+                    <span>Áudios</span>
+                </button>
+                <button
+                    className={`${styles.mobileNavItem} ${view === "draw" ? styles.navActive : ""}`}
+                    onClick={() => setView("draw")}
+                    aria-label="Abrir desenhos"
+                    aria-current={view === "draw" ? "page" : undefined}
+                >
+                    <Icon name="paint brush" />
+                    <span>Draw</span>
                 </button>
                 <button
                     className={`${styles.mobileNavItem} ${selectedFolder !== "all" && view === "tasks" ? styles.navActive : ""}`}

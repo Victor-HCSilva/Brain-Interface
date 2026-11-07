@@ -1,0 +1,238 @@
+.searchRoot {
+    position: relative;
+    width: 100%;
+}
+
+.searchBox {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    height: 38px;
+    padding: 0 8px 0 12px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    background: var(--surface-soft);
+    color: var(--muted);
+}
+
+.searchBox > :global(.icon) {
+    flex: 0 0 auto;
+    margin: 0 9px 0 0;
+}
+
+.searchBox input {
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    font-size: 12px;
+}
+
+.searchBox input::placeholder {
+    color: var(--muted);
+}
+
+.searchBox > button {
+    flex: 0 0 28px;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+}
+
+.searchBox > button:hover,
+.searchBox > button:focus-visible,
+.searchBox > button.filterActive {
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.searchBox > button :global(.icon) {
+    margin: 0;
+}
+
+.searchPanel {
+    position: absolute;
+    z-index: 80;
+    top: calc(100% + 8px);
+    left: 0;
+    width: min(620px, calc(100vw - 32px));
+    max-height: min(72vh, 590px);
+    overflow: auto;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+    color: var(--ink);
+}
+
+.filters {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr 1fr;
+    gap: 10px;
+    padding: 14px;
+    border-bottom: 1px solid var(--line);
+}
+
+.filters label {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.filters label > span {
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.filters select,
+.filters input {
+    width: 100%;
+    min-width: 0;
+    height: 34px;
+    padding: 0 8px;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: var(--surface);
+    color: var(--ink);
+    font: inherit;
+    font-size: 11px;
+}
+
+.resultHeading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 36px;
+    padding: 8px 13px;
+    border-bottom: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.resultHeading :global(.icon) {
+    margin: 0;
+}
+
+.resultList {
+    display: flex;
+    flex-direction: column;
+    padding: 4px;
+}
+
+.result {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-width: 0;
+    padding: 10px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--ink);
+    text-align: left;
+    cursor: pointer;
+}
+
+.result:hover,
+.result:focus-visible {
+    outline: 0;
+    background: var(--surface-soft);
+}
+
+.resultIcon {
+    display: grid;
+    flex: 0 0 30px;
+    width: 30px;
+    height: 30px;
+    place-items: center;
+    border-radius: 6px;
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.resultIcon :global(.icon) {
+    margin: 0;
+}
+
+.resultText {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.resultText strong,
+.resultText > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.resultText strong {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.resultText > span,
+.result time {
+    color: var(--muted);
+    font-size: 10px;
+}
+
+.result time {
+    flex: 0 0 auto;
+}
+
+.emptyState {
+    margin: 0;
+    padding: 24px 14px;
+    color: var(--muted);
+    font-size: 12px;
+    text-align: center;
+}
+
+.pagination {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 9px 12px;
+    border-top: 1px solid var(--line);
+}
+
+.pagination button {
+    padding: 6px 9px;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: var(--surface);
+    color: var(--ink);
+    font: inherit;
+    font-size: 10px;
+    cursor: pointer;
+}
+
+.pagination button:disabled {
+    cursor: default;
+    opacity: .5;
+}
+
+@media (max-width: 620px) {
+    .filters {
+        grid-template-columns: 1fr;
+    }
+
+    .result time {
+        font-size: 9px;
+    }
+}

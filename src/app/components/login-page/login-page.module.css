@@ -12,7 +12,7 @@
 .brand {
     position: relative;
     overflow: hidden;
-    background: #0e2d22;
+    background: #202226;
     display: flex;
     align-items: stretch;
 }
@@ -21,9 +21,9 @@
     position: absolute;
     inset: 0;
     background:
-        radial-gradient(ellipse 70% 60% at 20% 30%, rgba(32, 120, 80, 0.45) 0%, transparent 60%),
-        radial-gradient(ellipse 50% 50% at 80% 80%, rgba(16, 80, 55, 0.6) 0%, transparent 60%),
-        linear-gradient(160deg, #0e2d22 0%, #0a1f18 100%);
+        radial-gradient(ellipse 70% 60% at 20% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 50% at 80% 80%, rgba(255, 255, 255, 0.06) 0%, transparent 60%),
+        linear-gradient(160deg, #26292e 0%, #17191c 100%);
 }
 
 .brandContent {
@@ -41,11 +41,11 @@
     width: 48px;
     height: 48px;
     border-radius: 14px;
-    background: rgba(160, 230, 190, 0.12);
-    border: 1px solid rgba(160, 230, 190, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.16);
     display: grid;
     place-items: center;
-    color: #9fdbb4;
+    color: #e4e5e7;
     margin-bottom: 52px;
     flex-shrink: 0;
 }
@@ -58,7 +58,7 @@
 }
 
 .brand .kicker {
-    color: #7db59a;
+    color: #b7bbc2;
     margin-bottom: 22px;
 }
 
@@ -67,13 +67,13 @@
     font-weight: 600;
     line-height: 1.07;
     letter-spacing: -0.5px;
-    color: #eaf6ef;
+    color: #f4f4f5;
     margin: 0 0 20px;
 }
 
 .tagline {
     font-size: 15px;
-    color: #8bbdab;
+    color: #c3c6cc;
     line-height: 1.7;
     max-width: 380px;
     margin: 0 0 44px;
@@ -93,11 +93,11 @@
     align-items: center;
     gap: 11px;
     font-size: 13px;
-    color: #a8cfbe;
+    color: #d1d3d7;
 }
 
 .featureDot {
-    color: #4cb880;
+    color: #f4f4f5;
     font-size: 10px;
     flex-shrink: 0;
 }
@@ -107,22 +107,22 @@
     align-items: center;
     gap: 9px;
     font-size: 12px;
-    color: #6ea68e;
+    color: #aeb2b9;
 }
 
 .statusDot {
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: #4cb880;
-    box-shadow: 0 0 0 3px rgba(76, 184, 128, 0.25);
+    background: #d1d4d9;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
     animation: pulse 2s infinite;
     flex-shrink: 0;
 }
 
 @keyframes pulse {
-    0%, 100% { box-shadow: 0 0 0 3px rgba(76, 184, 128, 0.25); }
-    50%       { box-shadow: 0 0 0 6px rgba(76, 184, 128, 0.1); }
+    0%, 100% { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2); }
+    50%       { box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.08); }
 }
 
 /* Decorative circles */
@@ -134,7 +134,7 @@
 }
 .circle1 { width: 480px; height: 480px; right: -200px; bottom: -180px; }
 .circle2 { width: 320px; height: 320px; right: -130px; bottom: -100px; box-shadow: 0 0 0 60px rgba(255,255,255,0.02); }
-.circle3 { width: 160px; height: 160px; right: -40px;  bottom: -20px;  background: rgba(76,184,128,0.04); border-color: rgba(76,184,128,0.15); }
+.circle3 { width: 160px; height: 160px; right: -40px;  bottom: -20px;  background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.15); }
 
 /* ── Form / Right Side ───────────────────────────────────────── */
 .formSide {
@@ -235,10 +235,10 @@
 .input {
     width: 100%;
     padding: 13px 13px 13px 40px;
-    background: #f4f6f4;
-    border: 1.5px solid #d5ded8;
+    background: var(--surface);
+    border: 1.5px solid var(--line);
     border-radius: 9px;
-    color: #111827 !important;
+    color: var(--ink) !important;
     font-size: 14px;
     font-weight: 500;
     font-family: inherit;
@@ -247,14 +247,14 @@
 }
 
 .input:focus {
-    border-color: #18775c;
-    box-shadow: 0 0 0 3px rgba(24, 119, 92, 0.12);
-    background: #ffffff;
-    color: #111827 !important;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
+    background: var(--surface);
+    color: var(--ink) !important;
 }
 
 .input::placeholder {
-    color: #8a968f;
+    color: var(--muted);
     font-weight: 400;
 }
 
@@ -299,8 +299,8 @@
     justify-content: center;
     gap: 8px;
     padding: 14px 24px;
-    background: #18775c;
-    color: #fff;
+    background: var(--accent);
+    color: var(--accent-contrast);
     border: none;
     border-radius: 9px;
     font-size: 15px;
@@ -308,13 +308,13 @@
     cursor: pointer;
     transition: background 0.18s, transform 0.12s, box-shadow 0.18s;
     margin-top: 4px;
-    box-shadow: 0 2px 8px rgba(24, 119, 92, 0.25);
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 25%, transparent);
     font-family: inherit;
 }
 
 .submitBtn:hover:not(:disabled) {
-    background: #135f48;
-    box-shadow: 0 4px 16px rgba(24, 119, 92, 0.35);
+    background: color-mix(in srgb, var(--accent) 85%, #000);
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--accent) 35%, transparent);
     transform: translateY(-1px);
 }
 
@@ -384,12 +384,12 @@
 /* Mode Switcher Tabs */
 .modeSwitcher {
     display: flex;
-    background: #eef2ef;
+    background: var(--surface-soft);
     padding: 4px;
     border-radius: 10px;
     margin-bottom: 24px;
     gap: 4px;
-    border: 1px solid #e1e7e3;
+    border: 1px solid var(--line);
 }
 
 .switchBtn {
@@ -398,7 +398,7 @@
     border: none;
     border-radius: 7px;
     background: transparent;
-    color: #55635b;
+    color: var(--muted);
     font-size: 13.5px;
     font-weight: 600;
     cursor: pointer;
@@ -407,12 +407,12 @@
 }
 
 .switchBtn:hover:not(.switchBtnActive) {
-    color: #18231c;
+    color: var(--ink);
 }
 
 .switchBtnActive {
-    background: #ffffff;
-    color: #18775c;
+    background: var(--surface);
+    color: var(--accent);
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
     font-weight: 700;
 }
@@ -432,7 +432,7 @@
     background: none;
     border: none;
     padding: 0;
-    color: #18775c;
+    color: var(--accent);
     font-weight: 600;
     font-size: 13px;
     cursor: pointer;
@@ -443,7 +443,7 @@
 }
 
 .toggleLink:hover {
-    color: #135f48;
+    color: var(--ink);
 }
 
 .successMsg {
@@ -451,29 +451,29 @@
     align-items: center;
     gap: 8px;
     padding: 11px 14px;
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
+    background: var(--accent-soft);
+    border: 1px solid var(--line);
     border-radius: 8px;
-    color: #166534;
+    color: var(--ink);
     font-size: 13px;
     font-weight: 500;
 }
 
 html[data-theme="dark"] .modeSwitcher {
-    background: #232c27;
-    border-color: #313d37;
+    background: var(--surface-soft);
+    border-color: var(--line);
 }
 
 html[data-theme="dark"] .switchBtn {
-    color: #92a198;
+    color: var(--muted);
 }
 
 html[data-theme="dark"] .switchBtnActive {
-    background: #2e3a34;
-    color: #78c7a6;
+    background: var(--surface);
+    color: var(--ink);
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 html[data-theme="dark"] .toggleLink {
-    color: #4cb880;
+    color: var(--ink);
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import styles from "./agenda-view.module.css";
+import { cachedFetch } from "@/lib/cachedFetch";
 
 export interface AgendaEvent {
     id: number;
@@ -10,6 +11,8 @@ export interface AgendaEvent {
     tipo_de_evento: string;
     importancia: string;
     dia_do_evento: string;
+    email_notification_at?: string | null;
+    email_notification_message?: string;
 }
 
 export interface AgendaColors {
@@ -78,7 +81,7 @@ export default function AgendaView({ events, onNewEvent, onEditEvent, onDeleteEv
     useEffect(() => {
         async function loadColors() {
             try {
-                const res = await fetch("/api/agenda/configs/");
+                const res = await cachedFetch("/api/agenda/configs/");
                 if (!res.ok) return;
                 const data = await res.json();
                 const config = Array.isArray(data) ? data[0] : data;
@@ -118,7 +121,7 @@ export default function AgendaView({ events, onNewEvent, onEditEvent, onDeleteEv
     async function saveColors() {
         setSavingColors(true);
         try {
-            const res = await fetch("/api/agenda/configs/", {
+            const res = await cachedFetch("/api/agenda/configs/", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(tempColors),

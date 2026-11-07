@@ -2,7 +2,7 @@
     width: 16px;
     height: 16px;
     margin: 4px 0 0;
-    accent-color: #18775c;
+    accent-color: var(--accent);
     cursor: pointer;
 }
 
@@ -14,7 +14,7 @@
     display: grid;
     place-items: center;
     padding: 22px;
-    background: rgba(10, 20, 15, .62);
+    background: rgba(10, 11, 13, .62);
 }
 
 .modalBackdrop :global(.ui.modal) {
@@ -50,6 +50,67 @@
     padding-right: 50px;
 }
 
+.modalBackdrop .taskModal > :global(.header) {
+    padding: 21px 24px !important;
+    font-size: 19px;
+}
+
+.modalBackdrop .taskModal > :global(.content) {
+    padding: 22px 24px 8px !important;
+}
+
+.modalBackdrop .taskModal > :global(.actions) {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 16px 24px 20px !important;
+}
+
+.taskForm :global(.field) {
+    min-width: 0;
+    margin-bottom: 18px !important;
+}
+
+.taskForm :global(.field > label) {
+    display: block !important;
+    margin-bottom: 7px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+}
+
+.taskForm :global(.ui.input) {
+    width: 100%;
+}
+
+.taskForm :global(.ui.input > input),
+.taskForm select {
+    width: 100%;
+    min-width: 0;
+    min-height: 42px;
+    padding: 10px 12px !important;
+    border-radius: 6px !important;
+}
+
+.taskForm textarea {
+    display: block;
+    width: 100%;
+    min-height: 96px;
+    padding: 11px 12px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--ink);
+    resize: vertical;
+}
+
+.taskForm :global(.field > small) {
+    display: block;
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.5;
+}
+
 .appShell :global(.ui.negative.message) {
     background: color-mix(in srgb, #c83333 10%, var(--surface));
     color: var(--ink);
@@ -76,8 +137,8 @@
     flex-direction: column;
     align-items: flex-start;
     justify-content: center;
-    color: #f0f5ef;
-    background: #164f41;
+    color: var(--accent-contrast);
+    background: #22252a;
     position: relative;
     overflow: hidden;
 }
@@ -100,8 +161,8 @@
     border-radius: 13px;
     display: grid;
     place-items: center;
-    background: rgba(225, 246, 232, .14);
-    color: #d0f0dc;
+    background: rgba(255, 255, 255, .1);
+    color: #f4f4f5;
     font-size: 19px;
 }
 
@@ -117,7 +178,7 @@
 }
 
 .loginBrand .kicker {
-    color: #a9d0bf;
+    color: #c4c7cc;
 }
 
 .loginBrand h1 {
@@ -130,7 +191,7 @@
 
 .loginBrand p {
     max-width: 390px;
-    color: #c2d7cc;
+    color: #d1d3d7;
     font-size: 16px;
     line-height: 1.7;
 }
@@ -140,7 +201,7 @@
     align-items: center;
     gap: 10px;
     margin-top: 90px;
-    color: #c2d7cc;
+    color: #d1d3d7;
     font-size: 12px;
 }
 
@@ -148,7 +209,7 @@
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: #9fdbb4;
+    background: #d1d4d9;
 }
 
 .loginPanel {
@@ -191,7 +252,8 @@
 }
 
 .loginForm :global(.ui.primary.button) {
-    background: #18775c;
+    background: var(--accent);
+    color: var(--accent-contrast);
     margin-top: 8px;
     height: 48px;
 }
@@ -241,7 +303,7 @@
     flex: 0 0 39px;
     width: 39px;
     height: 39px;
-    color: #18775c;
+    color: var(--accent);
     background: var(--accent-soft);
 }
 
@@ -321,6 +383,72 @@
     white-space: nowrap;
 }
 
+.folderRow,
+.folderPickerRow {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.folderRow .navItem,
+.folderPickerRow .folderPickerItem {
+    flex: 1;
+    min-width: 0;
+    width: auto;
+}
+
+.folderEditButton {
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: background .15s ease, color .15s ease;
+}
+
+.folderDeleteButton {
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: background .15s ease, color .15s ease;
+}
+
+.folderEditButton:hover,
+.folderEditButton:focus-visible {
+    color: var(--accent);
+    background: var(--accent-soft);
+}
+
+.folderDeleteButton:hover,
+.folderDeleteButton:focus-visible {
+    color: var(--warning);
+    background: color-mix(in srgb, var(--warning) 12%, transparent);
+}
+
+.folderEditButton :global(.icon) {
+    margin: 0;
+    font-size: 12px;
+}
+
+.folderDeleteButton :global(.icon) {
+    margin: 0;
+    font-size: 12px;
+}
+
 .sidebarBottom {
     margin-top: auto;
 }
@@ -339,8 +467,8 @@
     border-radius: 50%;
     display: grid;
     place-items: center;
-    background: #e0eee6;
-    color: #23624a;
+    background: var(--accent-soft);
+    color: var(--accent);
     font-size: 12px;
     font-weight: 700;
 }
@@ -386,6 +514,13 @@
     background: var(--surface);
 }
 
+.globalSearchSlot {
+    flex: 1;
+    min-width: 120px;
+    max-width: 460px;
+    margin: 0 clamp(10px, 2vw, 24px);
+}
+
 .breadcrumb {
     display: flex;
     align-items: center;
@@ -406,9 +541,10 @@
 }
 
 .topActions :global(.ui.primary.button) {
-    background: #18775c;
+    background: var(--accent);
     font-size: 11px;
     padding: 11px 15px;
+    border-radius: 6px;
 }
 
 .topActions :global(.ui.basic.button) {
@@ -594,8 +730,8 @@
 }
 
 .taskRow :global(.ui.checkbox input:checked ~ label:before) {
-    background: #18775c !important;
-    border-color: #18775c !important;
+    background: var(--accent) !important;
+    border-color: var(--accent) !important;
 }
 
 .taskText {
@@ -743,7 +879,8 @@
 .formColumns {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 14px;
+    align-items: start;
+    gap: 16px;
 }
 
 .formColumns select {
@@ -838,6 +975,28 @@
     transition: background 0.15s ease, border-color 0.15s ease;
 }
 
+.folderPickerRow .folderPickerItem {
+    width: auto;
+}
+
+.folderPickerRow .folderEditButton {
+    width: 42px;
+    height: 42px;
+    flex-basis: 42px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+}
+
+.folderPickerRow .folderDeleteButton {
+    width: 42px;
+    height: 42px;
+    flex-basis: 42px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+}
+
 .folderPickerItem:hover,
 .folderPickerActive {
     background: var(--accent-soft);
@@ -901,7 +1060,7 @@
 
     .appShell {
         display: block;
-        padding-bottom: 60px;
+        padding-bottom: 76px;
     }
 
     .mobileBottomBar {
@@ -911,16 +1070,24 @@
         z-index: 20;
         width: 100%;
         height: 60px;
+        overflow-x: auto;
         background: var(--surface);
         border-top: 1px solid var(--line);
         align-items: center;
-        justify-content: space-around;
+        justify-content: flex-start;
+        gap: 2px;
         padding: 4px 6px;
         box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+        scrollbar-width: none;
+    }
+
+    .mobileBottomBar::-webkit-scrollbar {
+        display: none;
     }
 
     .mobileNavItem {
-        flex: 1;
+        flex: 0 0 50px;
+        min-width: 0;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -929,12 +1096,19 @@
         border: 0;
         background: transparent;
         color: var(--muted);
-        font-size: 9px;
+        font-size: 8px;
         font-weight: 600;
         padding: 6px 2px;
         border-radius: 6px;
         cursor: pointer;
         transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .mobileNavItem span {
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .mobileNavItem :global(.icon) {
@@ -963,7 +1137,7 @@
         position: fixed;
         inset: 0;
         z-index: 35;
-        background: rgba(10, 20, 15, 0.6);
+        background: rgba(10, 11, 13, 0.6);
         backdrop-filter: blur(2px);
     }
 
@@ -1016,8 +1190,18 @@
     }
 
     .topbar {
-        height: 58px;
+        height: auto;
+        min-height: 58px;
+        flex-wrap: wrap;
+        gap: 8px;
         padding: 0 15px;
+    }
+
+    .globalSearchSlot {
+        order: 3;
+        flex: 0 0 100%;
+        max-width: none;
+        margin: 0 0 8px;
     }
 
     .breadcrumb {
@@ -1125,6 +1309,23 @@
     .formColumns {
         grid-template-columns: 1fr;
         gap: 0;
+    }
+
+    .modalBackdrop {
+        padding: 14px;
+    }
+
+    .modalBackdrop .taskModal > :global(.header) {
+        padding: 18px 20px !important;
+    }
+
+    .modalBackdrop .taskModal > :global(.content) {
+        padding: 18px 20px 4px !important;
+    }
+
+    .modalBackdrop .taskModal > :global(.actions) {
+        flex-wrap: wrap;
+        padding: 14px 20px 18px !important;
     }
 }
 /* ── Checklists ─────────────────────────── */

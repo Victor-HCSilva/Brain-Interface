@@ -18,6 +18,12 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
+## Módulo de áudio
+
+A seção **Áudios** permite gravar pelo microfone ou enviar arquivos de áudio sem criar uma tarefa. Cada gravação pode ficar sem pasta ou ser organizada em uma pasta, e pode ser vinculada a uma ou mais tarefas depois, pela biblioteca de áudio.
+
+A seção **Draw** oferece um quadro de desenho livre com lápis, texto, quadrados, quadrados arredondados, círculos e setas. Os desenhos podem ser salvos de forma independente, organizados em pastas e vinculados a tarefas opcionalmente.
+
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More

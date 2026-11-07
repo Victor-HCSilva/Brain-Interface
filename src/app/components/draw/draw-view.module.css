@@ -1,0 +1,341 @@
+.drawView {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    width: min(100%, 1120px);
+    margin: 0 auto;
+}
+
+.heading,
+.libraryHeading,
+.cardHeader,
+.editorHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.heading h1,
+.libraryHeading h2 {
+    margin: 5px 0;
+    color: var(--ink);
+}
+
+.heading p,
+.libraryHeading span,
+.cardHeader span,
+.canvasHint {
+    margin: 0;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.kicker {
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+}
+
+.createForm,
+.editor,
+.drawingCard {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: var(--surface);
+}
+
+.createForm {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: end;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.field small {
+    color: var(--muted);
+    font-weight: 400;
+}
+
+.field input,
+.field select,
+.linkForm select,
+.textInput {
+    width: 100%;
+    min-height: 36px;
+    padding: 7px 9px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    color: var(--ink);
+    background: var(--surface);
+    font: inherit;
+}
+
+.formActions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.primaryButton,
+.secondaryButton,
+.deleteButton,
+.todoLink button,
+.linkForm button,
+.toolButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 36px;
+    padding: 7px 11px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    color: var(--ink);
+    background: var(--surface);
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.primaryButton,
+.linkForm button {
+    color: var(--accent-contrast);
+    border-color: var(--accent);
+    background: var(--accent);
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled,
+.linkForm button:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+}
+
+.editorHeader {
+    align-items: flex-end;
+}
+
+.editorHeader > .field:first-child {
+    flex: 1;
+}
+
+.editorHeader > .field:nth-child(2) {
+    width: min(220px, 30%);
+}
+
+.editorActions {
+    display: flex;
+    gap: 8px;
+}
+
+.toolBar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 9px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    background: var(--surface-soft);
+}
+
+.toolButton {
+    width: 36px;
+    min-width: 36px;
+    padding: 6px;
+}
+
+.toolActive {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--accent-soft);
+}
+
+.colorControl,
+.sizeControl {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 5px;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.colorControl input {
+    width: 28px;
+    height: 28px;
+    padding: 2px;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: var(--surface);
+}
+
+.sizeControl input {
+    width: 75px;
+}
+
+.textInput {
+    width: min(180px, 100%);
+    min-height: 32px;
+}
+
+.canvasWrap {
+    overflow: auto;
+    border: 1px solid #d5d7da;
+    border-radius: 6px;
+    background: #fff;
+    touch-action: none;
+}
+
+.canvas {
+    display: block;
+    width: 100%;
+    min-width: 600px;
+    height: auto;
+    aspect-ratio: 1000 / 650;
+    cursor: crosshair;
+    touch-action: none;
+}
+
+.canvasHint {
+    font-size: 11px;
+}
+
+.drawingList {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+    align-items: start;
+    gap: 14px;
+}
+
+.preview {
+    width: 100%;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+}
+
+.preview svg {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1000 / 650;
+}
+
+.cardHeader {
+    align-items: flex-start;
+}
+
+.cardHeader h3 {
+    margin: 0 0 4px;
+    color: var(--ink);
+    font-size: 14px;
+}
+
+.cardHeader span {
+    font-size: 10px;
+}
+
+.deleteButton {
+    width: 36px;
+    padding: 6px;
+    color: #b42323;
+}
+
+.todoLink {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    color: var(--ink);
+    font-size: 12px;
+}
+
+.todoLink button {
+    min-height: 28px;
+    padding: 4px 8px;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.linkForm {
+    display: flex;
+    gap: 7px;
+}
+
+.error,
+.success,
+.emptyState {
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.emptyState {
+    padding: 28px;
+    border-style: dashed;
+    text-align: center;
+}
+
+.error {
+    color: #b42323;
+    border-color: color-mix(in srgb, #b42323 35%, var(--line));
+    background: color-mix(in srgb, #b42323 8%, var(--surface));
+}
+
+.success {
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+@media (max-width: 700px) {
+    .createForm {
+        grid-template-columns: 1fr;
+    }
+
+    .formActions {
+        grid-column: auto;
+    }
+
+    .editorHeader {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .editorHeader > .field:nth-child(2) {
+        width: 100%;
+    }
+
+    .editorActions {
+        justify-content: flex-end;
+    }
+
+    .canvas {
+        min-width: 0;
+    }
+
+    .linkForm {
+        flex-direction: column;
+    }
+}

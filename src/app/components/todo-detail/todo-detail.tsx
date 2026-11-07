@@ -8,7 +8,10 @@ import {
     type ChangeEvent,
     type FormEvent,
 } from "react";
+import DOMPurify from "dompurify";
+import { marked } from "marked";
 import styles from "./todo-detail.module.css";
+import { cachedFetch } from "@/lib/cachedFetch";
 
 /* ── Types ──────────────────────────────────────────────────── */
 interface SharedUser {
@@ -79,6 +82,7 @@ interface Linker {
 interface Props {
     todo: Todo;
     folders: Folder[];
+    initialTab?: "view" | "images";
     onClose: () => void;
     onSave: (updated: Todo) => void;
     onDelete: (id: number) => void;
@@ -109,37 +113,41 @@ function priorityBadge(p: string) {
     return styles.badgeLow;
 }
 
-function formatImageUrl(url?: string | null): string {
-    if (!url) return "";
-    const mediaIndex = url.indexOf("/media/");
-    if (mediaIndex !== -1) {
-        return url.substring(mediaIndex);
+function readApiError(data: unknown, fallback: string): string {
+    if (data && typeof data === "object") {
+        for (const value of Object.values(data)) {
+            if (typeof value === "string") return value;
+            if (Array.isArray(value) && typeof value[0] === "string") return value[0];
+        }
     }
-    return url.replace(/^https?:\/\/(127\.0\.0\.1|localhost):8000/, "");
+    return fallback;
 }
 
-/* Simple Markdown Renderer */
-function renderMarkdown(text: string) {
-    if (!text) return "";
-    const sanitizedText = text.replace(/https?:\/\/(127\.0\.0\.1|localhost):8000\/media\//g, "/media/");
-    let html = sanitizedText
-        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-        .replace(/^### (.*$)/gim, "<h3>$1</h3>")
-        .replace(/^## (.*$)/gim, "<h2>$1</h2>")
-        .replace(/^# (.*$)/gim, "<h1>$1</h1>")
-        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-        .replace(/\*(.*?)\*/g, "<em>$1</em>")
-        .replace(/`([^`]+)`/g, "<code>$1</code>")
-        .replace(/^\> (.*$)/gim, "<blockquote>$1</blockquote>")
-        .replace(/^- (.*$)/gim, "<li>$1</li>")
-        .replace(/\n\n/g, "</p><p>")
-        .replace(/\n/g, "<br/>");
-    return `<p>${html}</p>`;
+function MarkdownContent({ text }: { text: string }) {
+    const [html, setHtml] = useState("");
+
+    useEffect(() => {
+        let cancelled = false;
+        const markdown = text.replace(/https?:\/\/(127\.0\.0\.1|localhost):8000\/media\//g, "/media/");
+        const rendered = marked.parse(markdown, { gfm: true, breaks: false, async: false });
+
+        Promise.resolve().then(() => {
+            if (!cancelled) {
+                setHtml(DOMPurify.sanitize(rendered, { USE_PROFILES: { html: true } }));
+            }
+        });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [text]);
+
+    return <div className={styles.markdownRender} dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
 /* ── Main component ──────────────────────────────────────────── */
-export default function TodoDetail({ todo, folders, onClose, onSave, onDelete }: Props) {
-    const [tab, setTab] = useState<Tab>("view");
+export default function TodoDetail({ todo, folders, initialTab = "view", onClose, onSave, onDelete }: Props) {
+    const [tab, setTab] = useState<Tab>(initialTab);
     const [form, setForm] = useState({
         titulo: todo.titulo,
         anotacao: todo.anotacao,
@@ -154,6 +162,8 @@ export default function TodoDetail({ todo, folders, onClose, onSave, onDelete }:
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState("");
     const [saveOk, setSaveOk] = useState(false);
+    const [completionError, setCompletionError] = useState("");
+    const [completionSaving, setCompletionSaving] = useState(false);
 
     // write mode state
     const [writeMode, setWriteMode] = useState<WriteMode>("editor");
@@ -175,6 +185,8 @@ export default function TodoDetail({ todo, folders, onClose, onSave, onDelete }:
     const [linkerLoading, setLinkerLoading] = useState(false);
     const [expandedTarefa, setExpandedTarefa] = useState<number | null>(null);
     const [selectedTarefaId, setSelectedTarefaId] = useState<string>("");
+    const [newChecklistTitle, setNewChecklistTitle] = useState("");
+    const [checklistCreating, setChecklistCreating] = useState(false);
     const [linkingError, setLinkingError] = useState("");
 
     // sharing
@@ -194,7 +206,7 @@ export default function TodoDetail({ todo, folders, onClose, onSave, onDelete }:
     useEffect(() => {
         if (tab !== "images") return;
         setImgLoading(true);
-        fetch(`/api/images/?todo=${todo.id}`)
+        cachedFetch(`/api/images/?todo=${todo.id}`)
             .then((r) => r.json())
             .then((data: { results?: TodoImage[] } | TodoImage[]) => {
                 setImages(Array.isArray(data) ? data : (data.results ?? []));
@@ -208,8 +220,8 @@ export default function TodoDetail({ todo, folders, onClose, onSave, onDelete }:
         if (tab !== "tasks") return;
         setLinkerLoading(true);
         Promise.all([
-            fetch(`/api/linkers/?todo=${todo.id}`).then((r) => r.json()),
-            fetch("/api/checklist/tarefas/").then((r) => r.json()),
+            cachedFetch(`/api/linkers/?todo=${todo.id}`).then((r) => r.json()),
+            cachedFetch("/api/checklist/tarefas/").then((r) => r.json()),
         ])
             .then(([linkerData, tarefaData]) => {
                 const linkerArr: Linker[] = Array.isArray(linkerData)
@@ -234,8 +246,8 @@ export default function TodoDetail({ todo, folders, onClose, onSave, onDelete }:
         setShareError("");
         try {
             const [todoRes, groupsRes] = await Promise.all([
-                fetch(`/api/todos/${todo.id}/`).then((r) => r.json()),
-                fetch("/api/groups/").then((r) => r.json()),
+                cachedFetch(`/api/todos/${todo.id}/`).then((r) => r.json()),
+                cachedFetch("/api/groups/").then((r) => r.json()),
             ]);
             const freshTodo = todoRes as Todo;
             setSharedUsers(freshTodo.colaboradores_detail ?? []);
@@ -270,7 +282,7 @@ export default function TodoDetail({ todo, folders, onClose, onSave, onDelete }:
         e.preventDefault();
         setSaving(true); setSaveError(""); setSaveOk(false);
         try {
-            const res = await fetch(`/api/todos/${todo.id}/`, {
+            const res = await cachedFetch(`/api/todos/${todo.id}/`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -298,22 +310,27 @@ export default function TodoDetail({ todo, folders, onClose, onSave, onDelete }:
     }
 
     async function handleToggleComplete() {
+        if (completionSaving) return;
         const next = !form.completo;
+        setCompletionSaving(true);
+        setCompletionError("");
         setForm((f) => ({ ...f, completo: next }));
         try {
-            const res = await fetch(`/api/todos/${todo.id}/toggle-complete/`, { method: "PATCH" });
-            if (res.ok) {
-                const updated = await res.json() as Todo;
-                onSave(updated);
-            }
-        } catch {
+            const res = await cachedFetch(`/api/todos/${todo.id}/toggle-complete/`, { method: "PATCH" });
+            if (!res.ok) throw new Error(readApiError(await res.json().catch(() => null), "Não foi possível atualizar a tarefa."));
+            const updated = await res.json() as Todo;
+            onSave(updated);
+        } catch (err) {
             setForm((f) => ({ ...f, completo: !next }));
+            setCompletionError(err instanceof Error ? err.message : "Não foi possível atualizar a tarefa.");
+        } finally {
+            setCompletionSaving(false);
         }
     }
 
     async function handleDelete() {
         try {
-            const res = await fetch(`/api/todos/${todo.id}/`, { method: "DELETE" });
+            const res = await cachedFetch(`/api/todos/${todo.id}/`, { method: "DELETE" });
             if (res.ok || res.status === 204) {
                 onDelete(todo.id);
                 onClose();
@@ -355,7 +372,7 @@ export default function TodoDetail({ todo, folders, onClose, onSave, onDelete }:
         fd.append("observacao", imgForm.observacao);
         fd.append("img", imgFile);
         try {
-            const res = await fetch("/api/images/", { method: "POST", body: fd });
+            const res = await cachedFetch("/api/images/", { method: "POST", body: fd });
             if (!res.ok) throw new Error("Erro ao enviar imagem.");
             const created = await res.json() as TodoImage;
             setImages((prev) => [created, ...prev]);
@@ -371,7 +388,7 @@ export default function TodoDetail({ todo, folders, onClose, onSave, onDelete }:
 
     async function handleDeleteImage(imgId: number) {
         try {
-            await fetch(`/api/images/${imgId}/`, { method: "DELETE" });
+            await cachedFetch(`/api/images/${imgId}/`, { method: "DELETE" });
             setImages((prev) => prev.filter((i) => i.id !== imgId));
         } catch {
             setImgError("Erro ao remover imagem.");
@@ -383,7 +400,7 @@ export default function TodoDetail({ todo, folders, onClose, onSave, onDelete }:
         if (!selectedTarefaId) return;
         setLinkingError("");
         try {
-            const res = await fetch("/api/linkers/", {
+            const res = await cachedFetch("/api/linkers/", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ todo: todo.id, tarefa: Number(selectedTarefaId) }),
@@ -400,9 +417,47 @@ export default function TodoDetail({ todo, folders, onClose, onSave, onDelete }:
         }
     }
 
+    async function handleCreateChecklist(e: FormEvent) {
+        e.preventDefault();
+        const title = newChecklistTitle.trim();
+        if (!title) return;
+        setChecklistCreating(true);
+        setLinkingError("");
+        try {
+            const checklistResponse = await cachedFetch("/api/checklist/tarefas/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ titulo: title }),
+            });
+            if (!checklistResponse.ok) {
+                const data = await checklistResponse.json().catch(() => null) as unknown;
+                throw new Error(readApiError(data, "Não foi possível criar a checklist."));
+            }
+            const checklist = await checklistResponse.json() as Tarefa;
+            setAllTarefas((previous) => [...previous, checklist]);
+            setNewChecklistTitle("");
+
+            const linkResponse = await cachedFetch("/api/linkers/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ todo: todo.id, tarefa: checklist.id }),
+            });
+            if (!linkResponse.ok) {
+                const data = await linkResponse.json().catch(() => null) as unknown;
+                throw new Error(`Checklist criada, mas não foi vinculada: ${readApiError(data, "tente vinculá-la pela lista abaixo.")}`);
+            }
+            const linker = await linkResponse.json() as Linker;
+            setLinkers((previous) => [...previous, linker]);
+        } catch (err) {
+            setLinkingError(err instanceof Error ? err.message : "Não foi possível criar a checklist.");
+        } finally {
+            setChecklistCreating(false);
+        }
+    }
+
     async function handleUnlink(linkerId: number) {
         try {
-            await fetch(`/api/linkers/${linkerId}/`, { method: "DELETE" });
+            await cachedFetch(`/api/linkers/${linkerId}/`, { method: "DELETE" });
             setLinkers((prev) => prev.filter((l) => l.id !== linkerId));
         } catch {
             setLinkingError("Erro ao desvincular lista.");
@@ -416,7 +471,7 @@ export default function TodoDetail({ todo, folders, onClose, onSave, onDelete }:
         if (!username) return;
         setShareLoading(true); setShareError(""); setShareSuccess("");
         try {
-            const res = await fetch(`/api/todos/${todo.id}/share/`, {
+            const res = await cachedFetch(`/api/todos/${todo.id}/share/`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ user_ids: [username] }),
@@ -442,7 +497,7 @@ export default function TodoDetail({ todo, folders, onClose, onSave, onDelete }:
         if (!shareSelectedGroupId) return;
         setShareLoading(true); setShareError(""); setShareSuccess("");
         try {
-            const res = await fetch(`/api/todos/${todo.id}/share/`, {
+            const res = await cachedFetch(`/api/todos/${todo.id}/share/`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ group_ids: [Number(shareSelectedGroupId)] }),
@@ -466,7 +521,7 @@ export default function TodoDetail({ todo, folders, onClose, onSave, onDelete }:
     async function handleShareRemoveUser(userId: number) {
         setShareLoading(true); setShareError("");
         try {
-            const res = await fetch(`/api/todos/${todo.id}/share/`, {
+            const res = await cachedFetch(`/api/todos/${todo.id}/share/`, {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ user_ids: [userId] }),
@@ -484,7 +539,7 @@ export default function TodoDetail({ todo, folders, onClose, onSave, onDelete }:
     async function handleShareRemoveGroup(groupId: number) {
         setShareLoading(true); setShareError("");
         try {
-            const res = await fetch(`/api/todos/${todo.id}/share/`, {
+            const res = await cachedFetch(`/api/todos/${todo.id}/share/`, {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ group_ids: [groupId] }),
@@ -507,7 +562,7 @@ export default function TodoDetail({ todo, folders, onClose, onSave, onDelete }:
 
                 {lightbox && (
                     <div className={styles.lightbox} onClick={() => setLightbox(null)}>
-                        <img src={formatImageUrl(lightbox)} alt="Visualização expandida" />
+                        <img src={lightbox} alt="Visualização expandida" />
                         <button className={styles.lightboxClose} onClick={() => setLightbox(null)} type="button">×</button>
                     </div>
                 )}
@@ -530,8 +585,16 @@ export default function TodoDetail({ todo, folders, onClose, onSave, onDelete }:
                     <h2 className={styles.title}>{todo.titulo}</h2>
                     <div className={styles.headerActions}>
                         <button className={styles.closeBtn} onClick={onClose} type="button" aria-label="Fechar">×</button>
-                        <button className={styles.iconBtn} title={form.completo ? "Marcar como pendente" : "Concluir"} onClick={() => void handleToggleComplete()} type="button">
-                            <i className={form.completo ? "check circle icon" : "circle outline icon"} aria-hidden />
+                        <button
+                            className={`${styles.iconBtn} ${styles.completeBtn} ${form.completo ? styles.completeBtnActive : ""}`}
+                            title={form.completo ? "Marcar como pendente" : "Concluir"}
+                            aria-label={form.completo ? "Marcar como pendente" : "Concluir tarefa"}
+                            aria-pressed={form.completo}
+                            disabled={completionSaving}
+                            onClick={() => void handleToggleComplete()}
+                            type="button"
+                        >
+                            <i className="check icon" aria-hidden />
                         </button>
                         <button className={`${styles.iconBtn} ${styles.iconBtnDanger}`} title="Excluir" onClick={() => setConfirm(true)} type="button">
                             <i className="trash alternate outline icon" aria-hidden />
@@ -569,6 +632,7 @@ export default function TodoDetail({ todo, folders, onClose, onSave, onDelete }:
 
                 {/* Body */}
                 <div className={styles.body}>
+                    {completionError && <div className={styles.errorMsg} role="alert"><i className="exclamation circle icon" /> {completionError}</div>}
 
                     {/* ── VIEW TAB ─────────────────────────────── */}
                     {tab === "view" && (
@@ -589,10 +653,7 @@ export default function TodoDetail({ todo, folders, onClose, onSave, onDelete }:
                             </div>
                             <div className={styles.markdownSection}>
                                 {todo.anotacao ? (
-                                    <div
-                                        className={styles.markdownRender}
-                                        dangerouslySetInnerHTML={{ __html: renderMarkdown(todo.anotacao) }}
-                                    />
+                                    <MarkdownContent text={todo.anotacao} />
                                 ) : (
                                     <p className={styles.emptyText}>Sem anotações nesta tarefa.</p>
                                 )}
@@ -652,10 +713,7 @@ export default function TodoDetail({ todo, folders, onClose, onSave, onDelete }:
                                 )}
                                 {(writeMode === "preview" || writeMode === "split") && (
                                     <div className={styles.previewPane}>
-                                        <div
-                                            className={styles.markdownRender}
-                                            dangerouslySetInnerHTML={{ __html: renderMarkdown(form.anotacao || "_Nada para visualizar ainda._") }}
-                                        />
+                                        <MarkdownContent text={form.anotacao || "_Nada para visualizar ainda._"} />
                                     </div>
                                 )}
                             </div>
@@ -764,8 +822,8 @@ export default function TodoDetail({ todo, folders, onClose, onSave, onDelete }:
                                 <div className={styles.imagesGrid}>
                                     {images.map((img) => (
                                         <div key={img.id} className={styles.imageCard}>
-                                            <div className={styles.imagePreviewWrap} onClick={() => setLightbox(formatImageUrl(img.img))}>
-                                                <img src={formatImageUrl(img.img)} alt={img.titulo || "Imagem"} className={styles.imageThumb} />
+                                            <div className={styles.imagePreviewWrap} onClick={() => setLightbox(`/api/images/${img.id}/file/`)}>
+                                                <img src={`/api/images/${img.id}/file/`} alt={img.titulo || "Imagem"} className={styles.imageThumb} />
                                                 <div className={styles.imageHoverOverlay}>
                                                     <i className="zoom in icon" /> Ampliar
                                                 </div>
@@ -790,6 +848,20 @@ export default function TodoDetail({ todo, folders, onClose, onSave, onDelete }:
                     {/* ── TASKS / CHECKLIST TAB ────────────────── */}
                     {tab === "tasks" && (
                         <div>
+                            <form className={styles.addMemberForm} onSubmit={(e) => void handleCreateChecklist(e)} style={{ marginBottom: 12 }}>
+                                <input
+                                    className={styles.input}
+                                    aria-label="Nome da nova checklist"
+                                    placeholder="Nome da nova checklist..."
+                                    value={newChecklistTitle}
+                                    onChange={(e: ChangeEvent<HTMLInputElement>) => setNewChecklistTitle(e.target.value)}
+                                    maxLength={100}
+                                    required
+                                />
+                                <button className={styles.saveBtn} type="submit" disabled={checklistCreating || !newChecklistTitle.trim()} style={{ marginTop: 0, whiteSpace: "nowrap" }}>
+                                    <i className={checklistCreating ? "spinner loading icon" : "plus icon"} /> Criar checklist
+                                </button>
+                            </form>
                             <form className={styles.addMemberForm} onSubmit={(e) => void handleLinkTarefa(e)} style={{ marginBottom: 20 }}>
                                 <select
                                     className={styles.select}
@@ -831,7 +903,7 @@ export default function TodoDetail({ todo, folders, onClose, onSave, onDelete }:
                                                 <div className={styles.linkedCardHeader}>
                                                     <button className={styles.linkedCardTitle} onClick={() => setExpandedTarefa(isExpanded ? null : linker.tarefa)} type="button">
                                                         <i className={isExpanded ? "chevron down icon" : "chevron right icon"} />
-                                                        <span className={styles.colorBadge} style={{ background: linker.tarefa_color || "#18775c" }} />
+                                                        <span className={styles.colorBadge} style={{ background: linker.tarefa_color || "var(--accent)" }} />
                                                         <strong>{linker.tarefa_titulo || fullTarefa?.titulo || `Lista #${linker.tarefa}`}</strong>
                                                         <span className={styles.linkedProgressBadge}>{doneCount}/{totalCount} ({pct}%)</span>
                                                     </button>
@@ -840,7 +912,7 @@ export default function TodoDetail({ todo, folders, onClose, onSave, onDelete }:
                                                     </button>
                                                 </div>
                                                 <div className={styles.progressBarBg}>
-                                                    <div className={styles.progressBarFill} style={{ width: `${pct}%`, background: linker.tarefa_color || "#18775c" }} />
+                                                    <div className={styles.progressBarFill} style={{ width: `${pct}%`, background: linker.tarefa_color || "var(--accent)" }} />
                                                 </div>
                                                 {isExpanded && fullTarefa && (
                                                     <div className={styles.linkedItensList}>

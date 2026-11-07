@@ -4,7 +4,7 @@
     position: fixed;
     inset: 0;
     z-index: 100;
-    background: rgba(10, 20, 15, 0.65);
+    background: rgba(10, 11, 13, 0.65);
     backdrop-filter: blur(4px);
     display: flex;
     align-items: flex-start;
@@ -69,6 +69,19 @@
 .iconBtn:hover {
     background: var(--line);
     color: var(--ink);
+}
+
+.completeBtn {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--accent-contrast);
+}
+
+.completeBtn:hover,
+.completeBtnActive {
+    border-color: color-mix(in srgb, var(--accent) 86%, #000);
+    background: color-mix(in srgb, var(--accent) 86%, #000);
+    color: var(--accent-contrast);
 }
 
 .iconBtnDanger:hover {
@@ -247,17 +260,32 @@
     word-break: break-word;
 }
 
+.markdownRender > :first-child { margin-top: 0; }
+.markdownRender > :last-child { margin-bottom: 0; }
 .markdownRender p { margin: 0 0 12px; }
 .markdownRender h1 { font-size: 1.4rem; font-weight: 700; margin: 18px 0 10px; border-bottom: 1px solid var(--line); padding-bottom: 5px; }
 .markdownRender h2 { font-size: 1.2rem; font-weight: 700; margin: 16px 0 8px; }
-.markdownRender h3 { font-size: 1rem; font-weight: 600; margin: 14px 0 6px; }
-.markdownRender ul { margin: 0 0 12px 20px; list-style: disc; }
-.markdownRender ol { margin: 0 0 12px 20px; list-style: decimal; }
+.markdownRender h3,
+.markdownRender h4,
+.markdownRender h5,
+.markdownRender h6 { font-size: 1rem; font-weight: 600; margin: 14px 0 6px; }
+.markdownRender ul,
+.markdownRender ol { margin: 0 0 12px; padding-left: 24px; }
+.markdownRender ul { list-style: disc; }
+.markdownRender ol { list-style: decimal; }
 .markdownRender li { margin-bottom: 4px; }
+.markdownRender li > p { margin-bottom: 6px; }
 .markdownRender code { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 2px 6px; font-family: monospace; font-size: 12px; color: #e06c75; }
 .markdownRender pre { background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 14px 16px; overflow-x: auto; margin: 12px 0; }
 .markdownRender pre code { background: transparent; border: 0; color: #c9d1d9; padding: 0; }
 .markdownRender blockquote { border-left: 3px solid var(--accent); padding: 8px 14px; margin: 12px 0; background: var(--accent-soft); border-radius: 0 6px 6px 0; font-style: italic; }
+.markdownRender blockquote > :last-child { margin-bottom: 0; }
+.markdownRender hr { border: 0; border-top: 1px solid var(--line); margin: 16px 0; }
+.markdownRender table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; margin: 12px 0; }
+.markdownRender th,
+.markdownRender td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; }
+.markdownRender th { background: var(--surface-soft); font-weight: 600; }
+.markdownRender img { max-width: 100%; height: auto; border-radius: 6px; }
 .markdownRender a { color: var(--accent); text-decoration: underline; }
 
 .emptyText {
@@ -301,7 +329,7 @@
     gap: 8px;
     padding: 10px 20px;
     background: var(--accent);
-    color: #ffffff;
+    color: var(--accent-contrast);
     border: 0;
     border-radius: 8px;
     font-size: 13px;
@@ -737,7 +765,7 @@
     position: fixed;
     inset: 0;
     z-index: 300;
-    background: rgba(10, 20, 15, 0.6);
+    background: rgba(10, 11, 13, 0.6);
     backdrop-filter: blur(4px);
     display: flex;
     align-items: center;
